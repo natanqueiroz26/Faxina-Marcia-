@@ -33,9 +33,12 @@
             <button onclick="mudarAba('historico')" class="w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-emerald-50 text-slate-700 font-medium cursor-pointer transition text-left">
                 <i class="fa-solid fa-clock-rotate-left text-emerald-600 w-5"></i><span>Histórico de Recebidos</span>
             </button>
+            <button onclick="toggleModalAdmin()" class="w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-emerald-50 text-emerald-700 font-medium cursor-pointer transition text-left bg-emerald-50/50">
+                <i class="fa-solid fa-gear text-emerald-600 w-5"></i><span>Gerenciar Casas</span>
+            </button>
         </div>
         <div class="p-4 border-t border-slate-100 text-center text-xs text-slate-400">
-            Controle de Faxinas v3.0
+            Controle de Faxinas v3.2
         </div>
     </div>
 
@@ -58,16 +61,7 @@
                     <label class="block text-xs font-medium text-slate-600 mb-1">Nome da Casa / Cliente</label>
                     <input type="text" id="nomeCasa" list="listaCasas" required placeholder="Selecione ou digite..." class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
                     <datalist id="listaCasas">
-                        <option value="vaninna">
-                        <option value="Boa Vista">
-                        <option value="dune">
-                        <option value="bossa nova">
-                        <option value="camuripim">
-                        <option value="casa azul">
-                        <option value="kasa Brasil">
-                        <option value="guaiuba">
-                        <option value="vila tropicalle">
-                        <option value="rodolfo">
+                        <!-- Preenchido dinamicamente -->
                     </datalist>
                 </div>
                 <div>
@@ -95,6 +89,33 @@
                     Salvar Faxina
                 </button>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal Gerenciar Casas -->
+    <div id="modalAdmin" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white p-5 rounded-2xl shadow-xl border border-slate-100 w-full max-w-sm relative">
+            <button onclick="toggleModalAdmin()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 cursor-pointer">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            <h2 class="text-lg font-semibold text-slate-700 mb-4 flex items-center">
+                <i class="fa-solid fa-gear text-emerald-600 mr-2"></i>Gerenciar Casas
+            </h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Adicionar Nova Casa / Cliente</label>
+                    <div class="flex space-x-2">
+                        <input type="text" id="novaCasaInput" placeholder="Nome da casa..." class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
+                        <button onclick="adicionarCasaAdmin()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm cursor-pointer transition">Adicionar</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Casas Cadastradas:</label>
+                    <div id="listaCasasAdmin" class="max-h-40 overflow-y-auto space-y-1 border border-slate-100 p-2 rounded-lg bg-slate-50 text-xs">
+                        <!-- Preenchido via JS -->
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -165,8 +186,77 @@
     <script>
         document.getElementById('dataFaxina').valueAsDate = new Date();
 
+        // Gerenciamento de Casas / Clientes
+        let casas = JSON.parse(localStorage.getItem('casas_v4'));
+        if (!casas) {
+            casas = [
+                "vaninna", "Boa Vista", "dune", "bossa nova", "camuripim", 
+                "casa azul", "kasa Brasil", "guaiuba", "vila tropicalle", "rodolfo"
+            ];
+            localStorage.setItem('casas_v4', JSON.stringify(casas));
+        }
+
+        function atualizarDatalistCasas() {
+            const datalist = document.getElementById('listaCasas');
+            datalist.innerHTML = '';
+            casas.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                datalist.appendChild(opt);
+            });
+        }
+
+        function atualizarListaCasasAdmin() {
+            const container = document.getElementById('listaCasasAdmin');
+            container.innerHTML = '';
+            casas.forEach((c, index) => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center bg-white p-1.5 rounded border border-slate-100';
+                div.innerHTML = `
+                    <span class="font-medium text-slate-700">${c}</span>
+                    <button onclick="removerCasaAdmin(${index})" class="text-red-400 hover:text-red-600 p-1 cursor-pointer"><i class="fa-solid fa-trash text-xs"></i></button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function adicionarCasaAdmin() {
+            const input = document.getElementById('novaCasaInput');
+            const nome = input.value.trim();
+            if (nome) {
+                if (!casas.map(c => c.toLowerCase()).includes(nome.toLowerCase())) {
+                    casas.push(nome);
+                    localStorage.setItem('casas_v4', JSON.stringify(casas));
+                    atualizarDatalistCasas();
+                    atualizarListaCasasAdmin();
+                    input.value = '';
+                    alert('Casa adicionada com sucesso!');
+                } else {
+                    alert('Essa casa já está cadastrada.');
+                }
+            }
+        }
+
+        function removerCasaAdmin(index) {
+            if (confirm(`Deseja apagar a casa "${casas[index]}" da lista?`)) {
+                casas.splice(index, 1);
+                localStorage.setItem('casas_v4', JSON.stringify(casas));
+                atualizarDatalistCasas();
+                atualizarListaCasasAdmin();
+            }
+        }
+
+        function toggleModalAdmin() {
+            const modal = document.getElementById('modalAdmin');
+            modal.classList.toggle('hidden');
+            if (!modal.classList.contains('hidden')) {
+                atualizarListaCasasAdmin();
+            }
+            toggleMenu();
+        }
+
+        // Dados de Faxinas
         let faxinas = JSON.parse(localStorage.getItem('faxinas_v4'));
-        
         if (!faxinas) {
             faxinas = [
                 { casa: "guaiuba", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-01", status: "pendente" },
@@ -203,7 +293,6 @@
             localStorage.setItem('faxinas_v4', JSON.stringify(faxinas));
         }
 
-        // Ordenar sempre por data (cronológica)
         faxinas.sort((a, b) => new Date(a.data + 'T00:00:00') - new Date(b.data + 'T00:00:00'));
 
         const mesesNomes = [
@@ -510,6 +599,8 @@
             }
         }
 
+        // Inicialização
+        atualizarDatalistCasas();
         atualizarTela();
     </script>
 </body>

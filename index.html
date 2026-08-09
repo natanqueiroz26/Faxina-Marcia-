@@ -38,7 +38,7 @@
             </button>
         </div>
         <div class="p-4 border-t border-slate-100 text-center text-xs text-slate-400">
-            Controle de Faxinas v4.1
+            Controle de Faxinas v4.2
         </div>
     </div>
 
@@ -54,7 +54,7 @@
                 <i class="fa-solid fa-xmark text-xl"></i>
             </button>
             <h2 class="text-lg font-semibold text-slate-700 mb-4 flex items-center">
-                <i class="fa-solid fa-circle-plus text-emerald-600 mr-2"></i>Nova Faxina
+                <i class="fa-solid fa-circle-plus text-emerald-600 mr-2"></i>Nova Faxina / Serviço
             </h2>
             <form id="formFaxina" class="space-y-4">
                 <div>
@@ -63,10 +63,11 @@
                     <datalist id="listaCasas"></datalist>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Tipo de Faxina</label>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Tipo de Serviço</label>
                     <select id="tipoFaxina" onchange="atualizarValorAutomatico()" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-white">
                         <option value="Limpeza Normal">Limpeza Normal</option>
                         <option value="Limpeza Geral">Limpeza Geral</option>
+                        <option value="Café da Manhã">Café da Manhã</option>
                     </select>
                 </div>
                 <div>
@@ -77,14 +78,13 @@
                     <label class="block text-xs font-medium text-slate-600 mb-1">Data</label>
                     <input type="date" id="dataFaxina" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
                 </div>
-                <!-- Checkbox marcado por padrão -->
                 <div class="flex items-center space-x-2 pt-1">
                     <input type="checkbox" id="enviarZapCheck" checked class="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500 cursor-pointer">
-                    <label for="enviarZapCheck" class="text-xs text-slate-600 cursor-pointer select-none">Enviar esta limpeza no WhatsApp ao salvar</label>
+                    <label for="enviarZapCheck" class="text-xs text-slate-600 cursor-pointer select-none">Enviar este serviço no WhatsApp ao salvar</label>
                 </div>
 
                 <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-lg transition text-sm shadow-sm cursor-pointer mt-2">
-                    Salvar Faxina
+                    Salvar Registro
                 </button>
             </form>
         </div>
@@ -119,7 +119,7 @@
                 <div id="listaPendentesMeses" class="space-y-3 mb-4"></div>
                 
                 <div id="listaPendentes" class="space-y-3 max-h-96 overflow-y-auto pr-1">
-                    <p class="text-center text-slate-400 text-sm py-6">Nenhuma faxina pendente.</p>
+                    <p class="text-center text-slate-400 text-sm py-6">Nenhum serviço pendente.</p>
                 </div>
             </div>
         </div>
@@ -132,7 +132,7 @@
                     <span id="totalRecebido" class="text-xl font-bold text-emerald-600">R$ 0,00</span>
                 </div>
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 text-center">
-                    <span class="text-xs text-slate-400 block uppercase font-semibold">Faxinas Pagas</span>
+                    <span class="text-xs text-slate-400 block uppercase font-semibold">Serviços Pagos</span>
                     <span id="qtdRecebido" class="text-xl font-bold text-slate-700">0</span>
                 </div>
             </div>
@@ -161,14 +161,18 @@
                         <label class="block text-xs font-medium text-slate-600 mb-1">Nome da Casa</label>
                         <input type="text" id="novaCasaNome" required placeholder="Ex: Queiroz" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
                     </div>
-                    <div class="grid grid-cols-2 gap-2">
+                    <div class="grid grid-cols-3 gap-2">
                         <div>
-                            <label class="block text-xs font-medium text-slate-600 mb-1">Limpeza Normal (R$)</label>
-                            <input type="number" step="0.01" id="novaCasaNormal" required placeholder="50.00" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <label class="block text-[11px] font-medium text-slate-600 mb-1">Normal (R$)</label>
+                            <input type="number" step="0.01" id="novaCasaNormal" required placeholder="0.00" class="w-full px-2 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-slate-600 mb-1">Limpeza Geral (R$)</label>
-                            <input type="number" step="0.01" id="novaCasaGeral" required placeholder="100.00" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <label class="block text-[11px] font-medium text-slate-600 mb-1">Geral (R$)</label>
+                            <input type="number" step="0.01" id="novaCasaGeral" required placeholder="0.00" class="w-full px-2 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-medium text-slate-600 mb-1">Café (R$)</label>
+                            <input type="number" step="0.01" id="novaCasaCafe" required placeholder="0.00" class="w-full px-2 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
                         </div>
                     </div>
                     <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 rounded-lg text-sm transition cursor-pointer mt-1">
@@ -191,51 +195,19 @@
     <script>
         document.getElementById('dataFaxina').valueAsDate = new Date();
 
-        let faxinas = JSON.parse(localStorage.getItem('faxinas_v7')) || [
-            { casa: "guaiuba", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-01", status: "pendente" },
-            { casa: "vannina", tipo: "Limpeza Geral", valor: "80.00", data: "2026-07-02", status: "pendente" },
-            { casa: "casa azul", tipo: "Limpeza Geral", valor: "60.00", data: "2026-07-03", status: "pendente" },
-            { casa: "vannina", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-04", status: "pendente" },
-            { casa: "vila dune", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-06", status: "pendente" },
-            { casa: "vannina", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-07", status: "pendente" },
-            { casa: "camurupim", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-09", status: "pendente" },
-            { casa: "vannina", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-09", status: "pendente" },
-            { casa: "vannina", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-11", status: "pendente" },
-            { casa: "vaninna", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-13", status: "pendente" },
-            { casa: "camurupim", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-14", status: "pendente" },
-            { casa: "casa azul", tipo: "Limpeza Normal", valor: "36.00", data: "2026-07-15", status: "pendente" },
-            { casa: "vaninna", tipo: "Limpeza Geral", valor: "80.00", data: "2026-07-16", status: "pendente" },
-            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-16", status: "pendente" },
-            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-17", status: "pendente" },
-            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-18", status: "pendente" },
-            { casa: "vaninna", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-18", status: "pendente" },
-            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-19", status: "pendente" },
-            { casa: "bossa nova", tipo: "Limpeza Normal", valor: "36.00", data: "2026-07-19", status: "pendente" },
-            { casa: "vaninna", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-20", status: "pendente" },
-            { casa: "boa vista", tipo: "Limpeza Geral", valor: "120.00", data: "2026-07-21", status: "pendente" },
-            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-22", status: "pendente" },
-            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-23", status: "pendente" },
-            { casa: "Dune", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-23", status: "pendente" },
-            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-24", status: "pendente" },
-            { casa: "Do Rodolfo", tipo: "Limpeza Normal", valor: "0.00", data: "2026-07-24", status: "pendente" },
-            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-25", status: "pendente" },
-            { casa: "casa azul", tipo: "Limpeza Geral", valor: "60.00", data: "2026-07-25", status: "pendente" },
-            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-26", status: "pendente" },
-            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-27", status: "pendente" }
-        ];
-
-        let casasValores = JSON.parse(localStorage.getItem('casas_valores_v7')) || [
-            { nome: "Queiroz", normal: "50.00", geral: "100.00" },
-            { nome: "vaninna", normal: "54.00", geral: "80.00" },
-            { nome: "Boa Vista", normal: "72.00", geral: "120.00" },
-            { nome: "dune", normal: "54.00", geral: "80.00" },
-            { nome: "bossa nova", normal: "36.00", geral: "60.00" },
-            { nome: "camurupim", normal: "54.00", geral: "80.00" },
-            { nome: "casa azul", normal: "36.00", geral: "60.00" },
-            { nome: "kasa Brasil", normal: "60.00", geral: "90.00" },
-            { nome: "guaiuba", normal: "72.00", geral: "100.00" },
-            { nome: "vila tropicalle", normal: "60.00", geral: "90.00" },
-            { nome: "rodolfo", normal: "0.00", geral: "0.00" }
+        let faxinas = JSON.parse(localStorage.getItem('faxinas_v8')) || [];
+        let casasValores = JSON.parse(localStorage.getItem('casas_valores_v8')) || [
+            { nome: "Queiroz", normal: "50.00", geral: "100.00", cafe: "30.00" },
+            { nome: "vaninna", normal: "54.00", geral: "80.00", cafe: "30.00" },
+            { nome: "Boa Vista", normal: "72.00", geral: "120.00", cafe: "35.00" },
+            { nome: "dune", normal: "54.00", geral: "80.00", cafe: "30.00" },
+            { nome: "bossa nova", normal: "36.00", geral: "60.00", cafe: "25.00" },
+            { nome: "camurupim", normal: "54.00", geral: "80.00", cafe: "30.00" },
+            { nome: "casa azul", normal: "36.00", geral: "60.00", cafe: "25.00" },
+            { nome: "kasa Brasil", normal: "60.00", geral: "90.00", cafe: "30.00" },
+            { nome: "guaiuba", normal: "72.00", geral: "100.00", cafe: "35.00" },
+            { nome: "vila tropicalle", normal: "60.00", geral: "90.00", cafe: "30.00" },
+            { nome: "rodolfo", normal: "0.00", geral: "0.00", cafe: "0.00" }
         ];
 
         const mesesNomes = [
@@ -313,6 +285,8 @@
             if (casaEncontrada) {
                 if (tipoSelecao === 'Limpeza Geral') {
                     campoValor.value = casaEncontrada.geral || casaEncontrada.normal || '0.00';
+                } else if (tipoSelecao === 'Café da Manhã') {
+                    campoValor.value = casaEncontrada.cafe || '0.00';
                 } else {
                     campoValor.value = casaEncontrada.normal || '0.00';
                 }
@@ -324,17 +298,18 @@
             const nome = document.getElementById('novaCasaNome').value.trim();
             const normal = parseFloat(document.getElementById('novaCasaNormal').value).toFixed(2);
             const geral = parseFloat(document.getElementById('novaCasaGeral').value).toFixed(2);
+            const cafe = parseFloat(document.getElementById('novaCasaCafe').value).toFixed(2);
 
             const indexExistente = casasValores.findIndex(c => c.nome.toLowerCase() === nome.toLowerCase());
             if (indexExistente >= 0) {
-                casasValores[indexExistente] = { nome, normal, geral };
+                casasValores[indexExistente] = { nome, normal, geral, cafe };
                 alert('Valores da casa atualizados com sucesso!');
             } else {
-                casasValores.push({ nome, normal, geral });
+                casasValores.push({ nome, normal, geral, cafe });
                 alert('Casa cadastrada com sucesso!');
             }
 
-            localStorage.setItem('casas_valores_v7', JSON.stringify(casasValores));
+            localStorage.setItem('casas_valores_v8', JSON.stringify(casasValores));
             document.getElementById('formCadastrarCasa').reset();
             atualizarListaCasasCadastradas();
         });
@@ -350,13 +325,14 @@
             casasValores.sort((a, b) => a.nome.localeCompare(b.nome)).forEach((c, index) => {
                 const valNormal = parseFloat(c.normal || 0).toFixed(2).replace('.', ',');
                 const valGeral = parseFloat(c.geral || 0).toFixed(2).replace('.', ',');
+                const valCafe = parseFloat(c.cafe || 0).toFixed(2).replace('.', ',');
 
                 const div = document.createElement('div');
                 div.className = 'flex justify-between items-center p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-sm';
                 div.innerHTML = `
                     <div>
                         <span class="font-bold text-slate-700 block">${c.nome}</span>
-                        <span class="text-xs text-slate-500">Normal: <strong class="text-emerald-600">R$ ${valNormal}</strong> | Geral: <strong class="text-emerald-600">R$ ${valGeral}</strong></span>
+                        <span class="text-[11px] text-slate-500">Norm: <strong class="text-emerald-600">R$ ${valNormal}</strong> | Ger: <strong class="text-emerald-600">R$ ${valGeral}</strong> | Café: <strong class="text-emerald-600">R$ ${valCafe}</strong></span>
                     </div>
                     <button onclick="removerCasa(${index})" class="text-slate-400 hover:text-red-500 p-1 cursor-pointer transition">
                         <i class="fa-solid fa-trash-can text-xs"></i>
@@ -369,7 +345,7 @@
         function removerCasa(index) {
             if (confirm('Deseja apagar esta casa da lista?')) {
                 casasValores.splice(index, 1);
-                localStorage.setItem('casas_valores_v7', JSON.stringify(casasValores));
+                localStorage.setItem('casas_valores_v8', JSON.stringify(casasValores));
                 atualizarListaCasasCadastradas();
             }
         }
@@ -427,7 +403,7 @@
             });
 
             if (pendentes.length === 0) {
-                listaPendentes.innerHTML = '<p class="text-center text-slate-400 text-sm py-6">Nenhuma faxina pendente.</p>';
+                listaPendentes.innerHTML = '<p class="text-center text-slate-400 text-sm py-6">Nenhum serviço pendente.</p>';
             } else {
                 pendentes.forEach((f) => {
                     const dataFormatada = new Date(f.data + 'T00:00:00').toLocaleDateString('pt-BR');
@@ -509,7 +485,7 @@
                             <button onclick="toggleMesAccordion('${chave}')" class="w-full flex justify-between items-center cursor-pointer text-left">
                                 <div>
                                     <span class="font-bold text-slate-700 block text-base">${nomeMes} de ${grupo.ano}</span>
-                                    <span class="text-xs text-slate-400">${grupo.itens.length} limpeza(s)</span>
+                                    <span class="text-xs text-slate-400">${grupo.itens.length} registro(s)</span>
                                 </div>
                                 <div class="text-right flex items-center space-x-3">
                                     <span class="font-bold text-emerald-600">R$ ${totalMesFormatado}</span>
@@ -574,13 +550,13 @@
         function darBaixaMes(chaveMes) {
             const [ano, mes] = chaveMes.split('-');
             const nomeMes = mesesNomes[parseInt(mes) - 1];
-            if (confirm(`Deseja dar baixa em todas as faxinas pendentes de ${nomeMes} de ${ano}?`)) {
+            if (confirm(`Deseja dar baixa em todos os serviços pendentes de ${nomeMes} de ${ano}?`)) {
                 faxinas.forEach(f => {
                     if (f.status === 'pendente' && f.data.startsWith(chaveMes)) {
                         f.status = 'recebido';
                     }
                 });
-                localStorage.setItem('faxinas_v7', JSON.stringify(faxinas));
+                localStorage.setItem('faxinas_v8', JSON.stringify(faxinas));
                 atualizarTela();
             }
         }
@@ -588,13 +564,13 @@
         function restaurarMes(chaveMes) {
             const [ano, mes] = chaveMes.split('-');
             const nomeMes = mesesNomes[parseInt(mes) - 1];
-            if (confirm(`Deseja restaurar todas as faxinas de ${nomeMes} de ${ano} de volta para Pendentes?`)) {
+            if (confirm(`Deseja restaurar todos os serviços de ${nomeMes} de ${ano} de volta para Pendentes?`)) {
                 faxinas.forEach(f => {
                     if (f.status === 'recebido' && f.data.startsWith(chaveMes)) {
                         f.status = 'pendente';
                     }
                 });
-                localStorage.setItem('faxinas_v7', JSON.stringify(faxinas));
+                localStorage.setItem('faxinas_v8', JSON.stringify(faxinas));
                 atualizarTela();
             }
         }
@@ -612,7 +588,7 @@
             };
 
             faxinas.unshift(novaFaxina);
-            localStorage.setItem('faxinas_v7', JSON.stringify(faxinas));
+            localStorage.setItem('faxinas_v8', JSON.stringify(faxinas));
             
             formFaxina.reset();
             document.getElementById('enviarZapCheck').checked = true;
@@ -631,7 +607,7 @@
                 const valorLimpo = parseFloat(novoValorStr.replace(',', '.'));
                 if (!isNaN(valorLimpo)) {
                     faxinas[index].valor = valorLimpo.toFixed(2);
-                    localStorage.setItem('faxinas_v7', JSON.stringify(faxinas));
+                    localStorage.setItem('faxinas_v8', JSON.stringify(faxinas));
                     atualizarTela();
                 } else {
                     alert('Valor inválido. Digite apenas números.');
@@ -641,13 +617,13 @@
 
         function darBaixa(index) {
             faxinas[index].status = 'recebido';
-            localStorage.setItem('faxinas_v7', JSON.stringify(faxinas));
+            localStorage.setItem('faxinas_v8', JSON.stringify(faxinas));
             atualizarTela();
         }
 
         function voltarPendente(index) {
             faxinas[index].status = 'pendente';
-            localStorage.setItem('faxinas_v7', JSON.stringify(faxinas));
+            localStorage.setItem('faxinas_v8', JSON.stringify(faxinas));
             atualizarTela();
         }
 
@@ -676,11 +652,11 @@
         function enviarWhatsAppGeral() {
             const pendentes = faxinas.filter(f => f.status === 'pendente' || !f.status);
             if (pendentes.length === 0) {
-                alert('Não há faxinas pendentes para enviar.');
+                alert('Não há serviços pendentes para enviar.');
                 return;
             }
 
-            let texto = "Resumo de Faxinas Pendentes:\n\n";
+            let texto = "Resumo de Serviços Pendentes:\n\n";
             let totalGeral = 0;
 
             pendentes.forEach((f) => {
@@ -697,7 +673,7 @@
         function removerFaxina(index) {
             if (confirm('Deseja realmente apagar este registro?')) {
                 faxinas.splice(index, 1);
-                localStorage.setItem('faxinas_v7', JSON.stringify(faxinas));
+                localStorage.setItem('faxinas_v8', JSON.stringify(faxinas));
                 atualizarTela();
             }
         }
@@ -706,4 +682,3 @@
     </script>
 </body>
 </html>
-

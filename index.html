@@ -35,7 +35,7 @@
             </button>
         </div>
         <div class="p-4 border-t border-slate-100 text-center text-xs text-slate-400">
-            Controle de Faxinas v3.2
+            Controle de Faxinas v3.3
         </div>
     </div>
 
@@ -127,6 +127,9 @@
                     </h2>
                     <span id="contadorPendentes" class="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded-full font-medium">0 registros</span>
                 </div>
+                <!-- Bloco de Baixa em Lote por Mês injetado aqui via JS -->
+                <div id="listaPendentesMeses" class="space-y-3 mb-4"></div>
+                
                 <div id="listaPendentes" class="space-y-3 max-h-96 overflow-y-auto pr-1">
                     <p class="text-center text-slate-400 text-sm py-6">Nenhuma faxina pendente.</p>
                 </div>
@@ -165,7 +168,7 @@
     <script>
         document.getElementById('dataFaxina').valueAsDate = new Date();
 
-        let faxinas = JSON.parse(localStorage.getItem('faxinas_v4'));
+        let faxinas = JSON.parse(localStorage.getItem('faxinas_v5'));
         
         if (!faxinas) {
             faxinas = [
@@ -200,7 +203,7 @@
                 { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-26", status: "pendente" },
                 { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-27", status: "pendente" }
             ];
-            localStorage.setItem('faxinas_v4', JSON.stringify(faxinas));
+            localStorage.setItem('faxinas_v5', JSON.stringify(faxinas));
         }
 
         // Ordenar sempre por data (cronológica)
@@ -279,7 +282,7 @@
 
             const pendentes = [];
             const recebidosPorMes = {};
-            const pendentesPorMes = {}; // Para gerenciar a baixa em lote por mês
+            const pendentesPorMes = {};
 
             faxinas.forEach((f, index) => {
                 if (!f.status) f.status = 'pendente';
@@ -348,11 +351,8 @@
                 });
             }
 
-            // Exibir seção de Pendentes agrupados por mês (Início / Pendentes) para permitir dar baixa em todo o mês de uma vez
-            const listaPendentesMeses = document.getElementById('listaPendentesMeses') || criarSecaoPendentesPorMes();
             preencherPendentesPorMes(pendentesPorMes);
 
-            // Renderizar Histórico de Recebidos
             const chavesMeses = Object.keys(recebidosPorMes).sort().reverse();
             if (chavesMeses.length === 0) {
                 listaRecebidosMeses.innerHTML = '<p class="text-center text-slate-400 text-sm py-6">Nenhum histórico registrado ainda.</p>';
@@ -420,21 +420,12 @@
             contadorRecebidos.textContent = `${qtdRecebido} registro${qtdRecebido > 1 ? 's' : ''}`;
         }
 
-        // Função para criar o bloco de "Dar Baixa no Mês" na tela de pendentes
-        function criarSecaoPendentesPorMes() {
-            const container = document.createElement('div');
-            container.id = 'listaPendentesMeses';
-            container.className = 'space-y-3 mb-4';
-            listaPendentes.parentNode.insertBefore(container, listaPendentes);
-            return container;
-        }
-
         function preencherPendentesPorMes(pendentesPorMes) {
             const container = document.getElementById('listaPendentesMeses');
             container.innerHTML = '';
 
             const chaves = Object.keys(pendentesPorMes).sort().reverse();
-            if (chaves.length <= 1) return; // Só mostra o bloco se houver mais de um mês com pendências para otimizar
+            if (chaves.length === 0) return;
 
             chaves.forEach(chave => {
                 const [ano, mes] = chave.split('-');
@@ -445,7 +436,7 @@
                 indices.forEach(idx => totalMesPendente += parseFloat(faxinas[idx].valor) || 0);
 
                 const div = document.createElement('div');
-                div.className = 'bg-amber-50 border border-amber-200 rounded-xl p-3 flex justify-between items-center text-sm';
+                div.className = 'bg-amber-50 border border-amber-200 rounded-xl p-3 flex justify-between items-center text-sm shadow-sm';
                 div.innerHTML = `
                     <div>
                         <span class="font-bold text-amber-900 block">${nomeMes} de ${ano}</span>
@@ -461,13 +452,15 @@
         }
 
         function darBaixaMes(chaveMes) {
-            if (confirm(`Deseja dar baixa em todas as faxinas pendentes de ${chaveMes.split('-')[1]}/${chaveMes.split('-')[0]}?`)) {
+            const [ano, mes] = chaveMes.split('-');
+            const nomeMes = mesesNomes[parseInt(mes) - 1];
+            if (confirm(`Deseja dar baixa em todas as faxinas pendentes de ${nomeMes} de ${ano}?`)) {
                 faxinas.forEach(f => {
                     if (f.status === 'pendente' && f.data.startsWith(chaveMes)) {
                         f.status = 'recebido';
                     }
                 });
-                localStorage.setItem('faxinas_v4', JSON.stringify(faxinas));
+                localStorage.setItem('faxinas_v5', JSON.stringify(faxinas));
                 atualizarTela();
             }
         }
@@ -485,7 +478,7 @@
             };
 
             faxinas.unshift(novaFaxina);
-            localStorage.setItem('faxinas_v4', JSON.stringify(faxinas));
+            localStorage.setItem('faxinas_v5', JSON.stringify(faxinas));
             
             formFaxina.reset();
             document.getElementById('enviarZapCheck').checked = true;
@@ -504,7 +497,7 @@
                 const valorLimpo = parseFloat(novoValorStr.replace(',', '.'));
                 if (!isNaN(valorLimpo)) {
                     faxinas[index].valor = valorLimpo.toFixed(2);
-                    localStorage.setItem('faxinas_v4', JSON.stringify(faxinas));
+                    localStorage.setItem('faxinas_v5', JSON.stringify(faxinas));
                     atualizarTela();
                 } else {
                     alert('Valor inválido. Digite apenas números.');
@@ -514,13 +507,13 @@
 
         function darBaixa(index) {
             faxinas[index].status = 'recebido';
-            localStorage.setItem('faxinas_v4', JSON.stringify(faxinas));
+            localStorage.setItem('faxinas_v5', JSON.stringify(faxinas));
             atualizarTela();
         }
 
         function voltarPendente(index) {
             faxinas[index].status = 'pendente';
-            localStorage.setItem('faxinas_v4', JSON.stringify(faxinas));
+            localStorage.setItem('faxinas_v5', JSON.stringify(faxinas));
             atualizarTela();
         }
 
@@ -570,7 +563,7 @@
         function removerFaxina(index) {
             if (confirm('Deseja realmente apagar este registro?')) {
                 faxinas.splice(index, 1);
-                localStorage.setItem('faxinas_v4', JSON.stringify(faxinas));
+                localStorage.setItem('faxinas_v5', JSON.stringify(faxinas));
                 atualizarTela();
             }
         }

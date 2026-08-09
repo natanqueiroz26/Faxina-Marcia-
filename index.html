@@ -40,9 +40,13 @@
             <button onclick="toggleModalAdmin()" class="w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-emerald-50 text-emerald-700 font-medium cursor-pointer transition text-left bg-emerald-50/50">
                 <i class="fa-solid fa-gear text-emerald-600 w-5"></i><span>Gerenciar Casas</span>
             </button>
+            <!-- Botão de emergência para forçar atualização dos dados na nuvem -->
+            <button onclick="forcarAtualizacaoNuvem()" class="w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-red-50 text-red-600 font-medium cursor-pointer transition text-left border border-red-100 mt-4">
+                <i class="fa-solid fa-rotate text-red-500 w-5"></i><span>Atualizar Nuvem de Julho</span>
+            </button>
         </div>
         <div class="p-4 border-t border-slate-100 text-center text-xs text-slate-400">
-            Controle de Faxinas Nuvem v4.0
+            Controle de Faxinas Nuvem v4.1
         </div>
     </div>
 
@@ -271,6 +275,17 @@
             }
             atualizarTela();
         });
+
+        // Função para forçar a substituição dos dados antigos pelos novos de julho na nuvem
+        function forcarAtualizacaoNuvem() {
+            if (confirm("Deseja substituir todos os dados atuais na nuvem pelos novos registros de Julho de 2026?")) {
+                db.ref('faxinas').set(dadosIniciaisJulho2026).then(() => {
+                    alert("Nuvem atualizada com sucesso!");
+                    location.reload();
+                });
+            }
+            toggleMenu();
+        }
 
         function toggleMenu() {
             const drawer = document.getElementById('drawerMenu');

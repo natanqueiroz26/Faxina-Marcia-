@@ -26,7 +26,7 @@
             <h2 class="font-bold text-lg"><i class="fa-solid fa-bars-progress mr-2"></i>Menu</h2>
             <button onclick="toggleMenu()" class="text-emerald-100 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-xl"></i></button>
         </div>
-        <div class="p-4 space-y-2 flex-1">
+        <div class="p-4 space-y-2 flex-1 overflow-y-auto">
             <button onclick="mudarAba('pendentes')" class="w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-emerald-50 text-slate-700 font-medium cursor-pointer transition text-left">
                 <i class="fa-solid fa-house text-emerald-600 w-5"></i><span>Início / Pendentes</span>
             </button>
@@ -36,27 +36,39 @@
             <button onclick="mudarAba('casas')" class="w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-emerald-50 text-slate-700 font-medium cursor-pointer transition text-left">
                 <i class="fa-solid fa-house-chimney text-emerald-600 w-5"></i><span>Gerenciar Casas & Valores</span>
             </button>
+            
+            <div class="pt-4 border-t border-slate-100 space-y-2">
+                <p class="text-xs font-bold text-slate-400 uppercase px-3">Segurança dos Dados</p>
+                <button onclick="exportarBackup()" class="w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-blue-50 text-blue-700 font-medium cursor-pointer transition text-left text-sm">
+                    <i class="fa-solid fa-download w-5"></i><span>Baixar Backup (Salvar)</span>
+                </button>
+                <button onclick="document.getElementById('inputImportar').click()" class="w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-amber-50 text-amber-700 font-medium cursor-pointer transition text-left text-sm">
+                    <i class="fa-solid fa-upload w-5"></i><span>Restaurar Backup</span>
+                </button>
+                <input type="file" id="inputImportar" accept=".json" class="hidden" onchange="importarBackup(event)">
+            </div>
         </div>
         <div class="p-4 border-t border-slate-100 text-center text-xs text-slate-400">
-            Controle de Faxinas v4.6
+            Controle de Faxinas v4.8
         </div>
     </div>
 
     <!-- Botão Flutuante -->
-    <button onclick="toggleModalNovaFaxina()" class="fixed bottom-6 right-6 bg-emerald-600 hover:bg-emerald-700 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-xl cursor-pointer z-30 transition-transform active:scale-95">
+    <button onclick="abrirModalNovaFaxina()" class="fixed bottom-6 right-6 bg-emerald-600 hover:bg-emerald-700 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-xl cursor-pointer z-30 transition-transform active:scale-95">
         <i class="fa-solid fa-plus"></i>
     </button>
 
-    <!-- Modal Nova Faxina -->
+    <!-- Modal Nova / Editar Faxina -->
     <div id="modalNovaFaxina" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white p-5 rounded-2xl shadow-xl border border-slate-100 w-full max-w-sm relative">
             <button onclick="toggleModalNovaFaxina()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 cursor-pointer">
                 <i class="fa-solid fa-xmark text-xl"></i>
             </button>
-            <h2 class="text-lg font-semibold text-slate-700 mb-4 flex items-center">
+            <h2 id="tituloModalFaxina" class="text-lg font-semibold text-slate-700 mb-4 flex items-center">
                 <i class="fa-solid fa-circle-plus text-emerald-600 mr-2"></i>Nova Faxina / Serviço
             </h2>
             <form id="formFaxina" class="space-y-4">
+                <input type="hidden" id="editIndexFaxina" value="">
                 <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1">Nome da Casa / Cliente</label>
                     <input type="text" id="nomeCasa" list="listaCasas" required placeholder="Selecione ou digite..." oninput="atualizarValorAutomatico()" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
@@ -78,12 +90,12 @@
                     <label class="block text-xs font-medium text-slate-600 mb-1">Data</label>
                     <input type="date" id="dataFaxina" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
                 </div>
-                <div class="flex items-center space-x-2 pt-1">
+                <div id="divCheckZap" class="flex items-center space-x-2 pt-1">
                     <input type="checkbox" id="enviarZapCheck" checked class="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500 cursor-pointer">
                     <label for="enviarZapCheck" class="text-xs text-slate-600 cursor-pointer select-none">Enviar este serviço no WhatsApp ao salvar</label>
                 </div>
 
-                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-lg transition text-sm shadow-sm cursor-pointer mt-2">
+                <button type="submit" id="btnSalvarFaxina" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-lg transition text-sm shadow-sm cursor-pointer mt-2">
                     Salvar Registro
                 </button>
             </form>
@@ -153,10 +165,14 @@
         <!-- SEÇÃO: GERENCIAR CASAS E VALORES -->
         <div id="secaoCasas" class="space-y-6 hidden">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-                <h2 class="text-lg font-semibold text-slate-700 mb-4 flex items-center">
-                    <i class="fa-solid fa-house-chimney text-emerald-600 mr-2"></i>Cadastrar Casa & Valores
-                </h2>
+                <div class="flex justify-between items-center mb-4">
+                    <h2 id="tituloFormCasa" class="text-lg font-semibold text-slate-700 flex items-center">
+                        <i class="fa-solid fa-house-chimney text-emerald-600 mr-2"></i>Cadastrar Casa & Valores
+                    </h2>
+                    <button id="btnCancelarEdicaoCasa" onclick="cancelarEdicaoCasa()" class="hidden text-xs text-red-500 font-medium underline cursor-pointer">Cancelar Edição</button>
+                </div>
                 <form id="formCadastrarCasa" class="space-y-3">
+                    <input type="hidden" id="editIndexCasa" value="">
                     <div>
                         <label class="block text-xs font-medium text-slate-600 mb-1">Nome da Casa</label>
                         <input type="text" id="novaCasaNome" required placeholder="Ex: Queiroz" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
@@ -175,7 +191,7 @@
                             <input type="number" step="0.01" id="novaCasaCafe" required placeholder="0.00" class="w-full px-2 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
                         </div>
                     </div>
-                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 rounded-lg text-sm transition cursor-pointer mt-1">
+                    <button type="submit" id="btnSalvarCasa" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 rounded-lg text-sm transition cursor-pointer mt-1">
                         Salvar Casa
                     </button>
                 </form>
@@ -195,7 +211,6 @@
     <script>
         document.getElementById('dataFaxina').valueAsDate = new Date();
 
-        // Lista padrão preenchida com os dados de julho que você enviou
         let faxinasIniciais = [
             { casa: "guaiuba", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-01", status: "pendente" },
             { casa: "vannina", tipo: "Limpeza Geral", valor: "80.00", data: "2026-07-02", status: "pendente" },
@@ -229,7 +244,6 @@
             { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-27", status: "pendente" }
         ];
 
-        // Recupera faxinas do localStorage ou usa a lista inicial se estiver vazio
         let faxinas = JSON.parse(localStorage.getItem('faxinas'));
         if (!faxinas || faxinas.length === 0) {
             faxinas = faxinasIniciais;
@@ -237,7 +251,6 @@
         }
         
         let casasSalvasAntigas = JSON.parse(localStorage.getItem('casas_valores')) || [];
-
         if (casasSalvasAntigas.length === 0) {
             casasSalvasAntigas = [
                 { nome: "Queiroz", normal: "50.00", geral: "100.00", cafe: "30.00" },
@@ -288,13 +301,19 @@
             }
         }
 
+        function abrirModalNovaFaxina() {
+            document.getElementById('editIndexFaxina').value = '';
+            document.getElementById('tituloModalFaxina').innerHTML = '<i class="fa-solid fa-circle-plus text-emerald-600 mr-2"></i>Nova Faxina / Serviço';
+            document.getElementById('btnSalvarFaxina').textContent = 'Salvar Registro';
+            document.getElementById('divCheckZap').style.display = 'flex';
+            formFaxina.reset();
+            document.getElementById('dataFaxina').valueAsDate = new Date();
+            atualizarDatalistCasas();
+            document.getElementById('modalNovaFaxina').classList.remove('hidden');
+        }
+
         function toggleModalNovaFaxina() {
-            const modal = document.getElementById('modalNovaFaxina');
-            modal.classList.toggle('hidden');
-            if (!modal.classList.contains('hidden')) {
-                document.getElementById('dataFaxina').valueAsDate = new Date();
-                atualizarDatalistCasas();
-            }
+            document.getElementById('modalNovaFaxina').classList.toggle('hidden');
         }
 
         function mudarAba(aba) {
@@ -309,6 +328,7 @@
                 document.getElementById('secaoHistorico').classList.remove('hidden');
             } else if (aba === 'casas') {
                 document.getElementById('secaoCasas').classList.remove('hidden');
+                cancelarEdicaoCasa();
                 atualizarListaCasasCadastradas();
             }
         }
@@ -324,6 +344,9 @@
         }
 
         function atualizarValorAutomatico() {
+            const editIndex = document.getElementById('editIndexFaxina').value;
+            if (editIndex !== '') return; // Se estiver editando, não sobrescreve o valor digitado pelo usuário automaticamente
+
             const nomeInput = document.getElementById('nomeCasa').value.trim();
             const tipoSelecao = document.getElementById('tipoFaxina').value;
             const campoValor = document.getElementById('valorFaxina');
@@ -342,24 +365,52 @@
 
         document.getElementById('formCadastrarCasa').addEventListener('submit', (e) => {
             e.preventDefault();
+            const editIndex = document.getElementById('editIndexCasa').value;
             const nome = document.getElementById('novaCasaNome').value.trim();
             const normal = parseFloat(document.getElementById('novaCasaNormal').value).toFixed(2);
             const geral = parseFloat(document.getElementById('novaCasaGeral').value).toFixed(2);
             const cafe = parseFloat(document.getElementById('novaCasaCafe').value).toFixed(2);
 
-            const indexExistente = casasValores.findIndex(c => c.nome.toLowerCase() === nome.toLowerCase());
-            if (indexExistente >= 0) {
-                casasValores[indexExistente] = { nome, normal, geral, cafe };
-                alert('Valores da casa atualizados com sucesso!');
+            if (editIndex !== '') {
+                casasValores[editIndex] = { nome, normal, geral, cafe };
+                alert('Casa atualizada com sucesso!');
             } else {
-                casasValores.push({ nome, normal, geral, cafe });
-                alert('Casa cadastrada com sucesso!');
+                const indexExistente = casasValores.findIndex(c => c.nome.toLowerCase() === nome.toLowerCase());
+                if (indexExistente >= 0) {
+                    casasValores[indexExistente] = { nome, normal, geral, cafe };
+                    alert('Valores da casa atualizados com sucesso!');
+                } else {
+                    casasValores.push({ nome, normal, geral, cafe });
+                    alert('Casa cadastrada com sucesso!');
+                }
             }
 
             localStorage.setItem('casas_valores', JSON.stringify(casasValores));
-            document.getElementById('formCadastrarCasa').reset();
+            cancelarEdicaoCasa();
             atualizarListaCasasCadastradas();
         });
+
+        function editarCasa(index) {
+            const c = casasValores[index];
+            document.getElementById('editIndexCasa').value = index;
+            document.getElementById('novaCasaNome').value = c.nome;
+            document.getElementById('novaCasaNormal').value = c.normal;
+            document.getElementById('novaCasaGeral').value = c.geral;
+            document.getElementById('novaCasaCafe').value = c.cafe;
+            
+            document.getElementById('tituloFormCasa').innerHTML = '<i class="fa-solid fa-pen text-emerald-600 mr-2"></i>Editar Casa & Valores';
+            document.getElementById('btnSalvarCasa').textContent = 'Atualizar Casa';
+            document.getElementById('btnCancelarEdicaoCasa').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function cancelarEdicaoCasa() {
+            document.getElementById('editIndexCasa').value = '';
+            document.getElementById('formCadastrarCasa').reset();
+            document.getElementById('tituloFormCasa').innerHTML = '<i class="fa-solid fa-house-chimney text-emerald-600 mr-2"></i>Cadastrar Casa & Valores';
+            document.getElementById('btnSalvarCasa').textContent = 'Salvar Casa';
+            document.getElementById('btnCancelarEdicaoCasa').classList.add('hidden');
+        }
 
         function atualizarListaCasasCadastradas() {
             const container = document.getElementById('listaCasasCadastradas');
@@ -381,9 +432,14 @@
                         <span class="font-bold text-slate-700 block">${c.nome}</span>
                         <span class="text-[11px] text-slate-500">Norm: <strong class="text-emerald-600">R$ ${valNormal}</strong> | Ger: <strong class="text-emerald-600">R$ ${valGeral}</strong> | Café: <strong class="text-emerald-600">R$ ${valCafe}</strong></span>
                     </div>
-                    <button onclick="removerCasa(${index})" class="text-slate-400 hover:text-red-500 p-1 cursor-pointer transition">
-                        <i class="fa-solid fa-trash-can text-xs"></i>
-                    </button>
+                    <div class="flex items-center space-x-1">
+                        <button onclick="editarCasa(${index})" title="Editar Casa" class="text-slate-600 hover:text-emerald-600 p-1.5 cursor-pointer transition">
+                            <i class="fa-solid fa-pen text-xs"></i>
+                        </button>
+                        <button onclick="removerCasa(${index})" title="Apagar Casa" class="text-slate-400 hover:text-red-500 p-1.5 cursor-pointer transition">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </div>
                 `;
                 container.appendChild(div);
             });
@@ -468,7 +524,7 @@
                             <div>
                                 <span class="font-bold text-emerald-600 block">R$ ${valorFormatado}</span>
                             </div>
-                            <button onclick="editarValor(${f.originalIndex})" title="Editar Valor" class="text-slate-600 hover:text-slate-700 transition p-1.5 bg-slate-200 rounded-lg cursor-pointer">
+                            <button onclick="abrirEditarFaxina(${f.originalIndex})" title="Editar Tudo" class="text-slate-600 hover:text-slate-700 transition p-1.5 bg-slate-200 rounded-lg cursor-pointer">
                                 <i class="fa-solid fa-pen text-xs"></i>
                             </button>
                             <button onclick="darBaixa(${f.originalIndex})" title="Dar Baixa (Recebido)" class="text-white bg-emerald-600 hover:bg-emerald-700 transition p-1.5 rounded-lg cursor-pointer">
@@ -622,45 +678,56 @@
             }
         }
 
+        function abrirEditarFaxina(index) {
+            const f = faxinas[index];
+            document.getElementById('editIndexFaxina').value = index;
+            document.getElementById('nomeCasa').value = f.casa;
+            document.getElementById('tipoFaxina').value = f.tipo;
+            document.getElementById('valorFaxina').value = f.valor;
+            document.getElementById('dataFaxina').value = f.data;
+            
+            document.getElementById('tituloModalFaxina').innerHTML = '<i class="fa-solid fa-pen text-emerald-600 mr-2"></i>Editar Faxina';
+            document.getElementById('btnSalvarFaxina').textContent = 'Atualizar Registro';
+            document.getElementById('divCheckZap').style.display = 'none'; // Esconde o check de whatsapp na edição
+            
+            atualizarDatalistCasas();
+            document.getElementById('modalNovaFaxina').classList.remove('hidden');
+        }
+
         formFaxina.addEventListener('submit', (e) => {
             e.preventDefault();
+            const editIndex = document.getElementById('editIndexFaxina').value;
             const enviarZap = document.getElementById('enviarZapCheck').checked;
 
-            const novaFaxina = {
-                casa: document.getElementById('nomeCasa').value,
-                tipo: document.getElementById('tipoFaxina').value,
-                valor: document.getElementById('valorFaxina').value,
-                data: document.getElementById('dataFaxina').value,
-                status: 'pendente'
-            };
+            const casaVal = document.getElementById('nomeCasa').value;
+            const tipoVal = document.getElementById('tipoFaxina').value;
+            const valorVal = document.getElementById('valorFaxina').value;
+            const dataVal = document.getElementById('dataFaxina').value;
 
-            faxinas.unshift(novaFaxina);
-            localStorage.setItem('faxinas', JSON.stringify(faxinas));
-            
-            formFaxina.reset();
-            document.getElementById('enviarZapCheck').checked = true;
-            toggleModalNovaFaxina();
-            atualizarTela();
-
-            if (enviarZap) {
-                enviarIndividualTexto(novaFaxina);
-            }
-        });
-
-        function editarValor(index) {
-            const f = faxinas[index];
-            const novoValorStr = prompt(`Editar valor para ${f.casa} (${f.tipo}) - Data: ${f.data}:`, f.valor);
-            if (novoValorStr !== null) {
-                const valorLimpo = parseFloat(novoValorStr.replace(',', '.'));
-                if (!isNaN(valorLimpo)) {
-                    faxinas[index].valor = valorLimpo.toFixed(2);
-                    localStorage.setItem('faxinas', JSON.stringify(faxinas));
-                    atualizarTela();
-                } else {
-                    alert('Valor inválido. Digite apenas números.');
+            if (editIndex !== '') {
+                faxinas[editIndex].casa = casaVal;
+                faxinas[editIndex].tipo = tipoVal;
+                faxinas[editIndex].valor = valorVal;
+                faxinas[editIndex].data = dataVal;
+                alert('Registro atualizado com sucesso!');
+            } else {
+                const novaFaxina = {
+                    casa: casaVal,
+                    tipo: tipoVal,
+                    valor: valorVal,
+                    data: dataVal,
+                    status: 'pendente'
+                };
+                faxinas.unshift(novaFaxina);
+                if (enviarZap) {
+                    enviarIndividualTexto(novaFaxina);
                 }
             }
-        }
+
+            localStorage.setItem('faxinas', JSON.stringify(faxinas));
+            toggleModalNovaFaxina();
+            atualizarTela();
+        });
 
         function darBaixa(index) {
             faxinas[index].status = 'recebido';
@@ -723,6 +790,51 @@
                 localStorage.setItem('faxinas', JSON.stringify(faxinas));
                 atualizarTela();
             }
+        }
+
+        function exportarBackup() {
+            const dadosBackup = {
+                faxinas: faxinas,
+                casas_valores: casasValores
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dadosBackup, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            const dataAtual = new Date().toISOString().split('T')[0];
+            downloadAnchor.setAttribute("download", `backup_faxinas_${dataAtual}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            toggleMenu();
+        }
+
+        function importarBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const conteudo = JSON.parse(e.target.result);
+                    if (conteudo.faxinas && conteudo.casas_valores) {
+                        if (confirm('Deseja restaurar este backup? Isso substituirá os dados atuais pelos do arquivo.')) {
+                            faxinas = conteudo.faxinas;
+                            casasValores = conteudo.casas_valores;
+                            localStorage.setItem('faxinas', JSON.stringify(faxinas));
+                            localStorage.setItem('casas_valores', JSON.stringify(casasValores));
+                            atualizarTela();
+                            alert('Backup restaurado com sucesso!');
+                        }
+                    } else {
+                        alert('Arquivo de backup inválido.');
+                    }
+                } catch (err) {
+                    alert('Erro ao ler o arquivo de backup.');
+                }
+                event.target.value = '';
+                toggleMenu();
+            };
+            reader.readAsText(file);
         }
 
         atualizarTela();

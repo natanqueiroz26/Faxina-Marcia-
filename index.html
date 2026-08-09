@@ -1,1 +1,521 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Faxinas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans pb-12">
+    <!-- Cabeçalho -->
+    <header class="bg-emerald-600 text-white shadow-md p-4 flex justify-between items-center relative">
+        <button onclick="toggleMenu()" class="text-white p-2 focus:outline-none cursor-pointer">
+            <i class="fa-solid fa-bars text-xl"></i>
+        </button>
+        <div class="text-center absolute left-1/2 transform -translate-x-1/2">
+            <h1 class="text-lg font-bold flex items-center justify-center"><i class="fa-solid fa-broom mr-2"></i>Faxinas</h1>
+        </div>
+        <div class="w-8"></div>
+    </header>
 
+    <!-- Menu Lateral (Drawer) -->
+    <div id="drawerOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden transition-opacity" onclick="toggleMenu()"></div>
+    <div id="drawerMenu" class="fixed top-0 left-0 w-72 h-full bg-white shadow-2xl z-50 transform -translate-x-full transition-transform duration-300 flex flex-col">
+        <div class="bg-emerald-600 text-white p-4 flex justify-between items-center">
+            <h2 class="font-bold text-lg"><i class="fa-solid fa-bars-progress mr-2"></i>Menu</h2>
+            <button onclick="toggleMenu()" class="text-emerald-100 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-xl"></i></button>
+        </div>
+        <div class="p-4 space-y-2 flex-1">
+            <button onclick="mudarAba('pendentes')" class="w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-emerald-50 text-slate-700 font-medium cursor-pointer transition text-left">
+                <i class="fa-solid fa-house text-emerald-600 w-5"></i><span>Início / Pendentes</span>
+            </button>
+            <button onclick="mudarAba('historico')" class="w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-emerald-50 text-slate-700 font-medium cursor-pointer transition text-left">
+                <i class="fa-solid fa-clock-rotate-left text-emerald-600 w-5"></i><span>Histórico de Recebidos</span>
+            </button>
+        </div>
+        <div class="p-4 border-t border-slate-100 text-center text-xs text-slate-400">
+            Controle de Faxinas v3.1
+        </div>
+    </div>
+
+    <!-- Botão Flutuante (Símbolo de Adicionar) -->
+    <button onclick="toggleModalNovaFaxina()" class="fixed bottom-6 right-6 bg-emerald-600 hover:bg-emerald-700 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-xl cursor-pointer z-30 transition-transform active:scale-95">
+        <i class="fa-solid fa-plus"></i>
+    </button>
+
+    <!-- Modal Nova Faxina -->
+    <div id="modalNovaFaxina" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white p-5 rounded-2xl shadow-xl border border-slate-100 w-full max-w-sm relative">
+            <button onclick="toggleModalNovaFaxina()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 cursor-pointer">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            <h2 class="text-lg font-semibold text-slate-700 mb-4 flex items-center">
+                <i class="fa-solid fa-circle-plus text-emerald-600 mr-2"></i>Nova Faxina
+            </h2>
+            <form id="formFaxina" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Nome da Casa / Cliente</label>
+                    <input type="text" id="nomeCasa" list="listaCasas" required placeholder="Selecione ou digite..." class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
+                    <datalist id="listaCasas">
+                        <option value="vaninna">
+                        <option value="Boa Vista">
+                        <option value="dune">
+                        <option value="bossa nova">
+                        <option value="camuripim">
+                        <option value="casa azul">
+                        <option value="kasa Brasil">
+                        <option value="guaiuba">
+                        <option value="vila tropicalle">
+                        <option value="rodolfo">
+                    </datalist>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Tipo de Faxina</label>
+                    <select id="tipoFaxina" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-white">
+                        <option value="Limpeza Normal">Limpeza Normal</option>
+                        <option value="Limpeza Geral">Limpeza Geral</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Valor (R$)</label>
+                    <input type="number" step="0.01" id="valorFaxina" required placeholder="0,00" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Data</label>
+                    <input type="date" id="dataFaxina" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
+                </div>
+                <!-- Checkbox marcado por padrão -->
+                <div class="flex items-center space-x-2 pt-1">
+                    <input type="checkbox" id="enviarZapCheck" checked class="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500 cursor-pointer">
+                    <label for="enviarZapCheck" class="text-xs text-slate-600 cursor-pointer select-none">Enviar esta limpeza no WhatsApp ao salvar</label>
+                </div>
+
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-lg transition text-sm shadow-sm cursor-pointer mt-2">
+                    Salvar Faxina
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <main class="max-w-md mx-auto p-4 space-y-6">
+        <!-- SEÇÃO: TELA INICIAL (PENDENTES) -->
+        <div id="secaoPendentes" class="space-y-6">
+            <!-- Cards de Resumo -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 text-center">
+                    <span class="text-xs text-slate-400 block uppercase font-semibold">A Receber</span>
+                    <span id="totalPendente" class="text-xl font-bold text-emerald-600">R$ 0,00</span>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 text-center">
+                    <span class="text-xs text-slate-400 block uppercase font-semibold">Pendentes</span>
+                    <span id="qtdPendente" class="text-xl font-bold text-slate-700">0</span>
+                </div>
+            </div>
+
+            <!-- Botão de Resumo Geral do WhatsApp -->
+            <button onclick="enviarWhatsAppGeral()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-2.5 rounded-xl transition text-sm shadow-sm flex items-center justify-center space-x-2 cursor-pointer">
+                <i class="fa-brands fa-whatsapp text-lg"></i>
+                <span>Enviar Resumo Pendente no WhatsApp</span>
+            </button>
+
+            <!-- Lista de Faxinas Pendentes -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold text-slate-700 flex items-center">
+                        <i class="fa-solid fa-clock text-amber-500 mr-2"></i>Pendentes / A Receber
+                    </h2>
+                    <span id="contadorPendentes" class="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded-full font-medium">0 registros</span>
+                </div>
+                <div id="listaPendentes" class="space-y-3 max-h-96 overflow-y-auto pr-1">
+                    <p class="text-center text-slate-400 text-sm py-6">Nenhuma faxina pendente.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO: HISTÓRICO DE RECEBIDOS -->
+        <div id="secaoHistorico" class="space-y-6 hidden">
+            <!-- Cards de Resumo Recebidos -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 text-center">
+                    <span class="text-xs text-slate-400 block uppercase font-semibold">Total Recebido</span>
+                    <span id="totalRecebido" class="text-xl font-bold text-emerald-600">R$ 0,00</span>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 text-center">
+                    <span class="text-xs text-slate-400 block uppercase font-semibold">Faxinas Pagas</span>
+                    <span id="qtdRecebido" class="text-xl font-bold text-slate-700">0</span>
+                </div>
+            </div>
+
+            <!-- Lista de Histórico Organizada por Mês -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold text-slate-700 flex items-center">
+                        <i class="fa-solid fa-circle-check text-emerald-600 mr-2"></i>Histórico por Mês
+                    </h2>
+                    <span id="contadorRecebidos" class="text-xs bg-emerald-50 text-emerald-700 px-2 py-1 rounded-full font-medium">0 registros</span>
+                </div>
+                <div id="listaRecebidosMeses" class="space-y-3 max-h-[32rem] overflow-y-auto pr-1">
+                    <p class="text-center text-slate-400 text-sm py-6">Nenhum histórico registrado ainda.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('dataFaxina').valueAsDate = new Date();
+
+        let faxinas = JSON.parse(localStorage.getItem('faxinas_v4'));
+        
+        if (!faxinas) {
+            faxinas = [
+                { casa: "guaiuba", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-01", status: "pendente" },
+                { casa: "vannina", tipo: "Limpeza Geral", valor: "80.00", data: "2026-07-02", status: "pendente" },
+                { casa: "casa azul", tipo: "Limpeza Geral", valor: "60.00", data: "2026-07-03", status: "pendente" },
+                { casa: "vannina", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-04", status: "pendente" },
+                { casa: "vila dune", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-06", status: "pendente" },
+                { casa: "vannina", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-07", status: "pendente" },
+                { casa: "camurupim", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-09", status: "pendente" },
+                { casa: "vannina", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-09", status: "pendente" },
+                { casa: "vannina", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-11", status: "pendente" },
+                { casa: "vaninna", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-13", status: "pendente" },
+                { casa: "camurupim", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-14", status: "pendente" },
+                { casa: "casa azul", tipo: "Limpeza Normal", valor: "36.00", data: "2026-07-15", status: "pendente" },
+                { casa: "vaninna", tipo: "Limpeza Geral", valor: "80.00", data: "2026-07-16", status: "pendente" },
+                { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-16", status: "pendente" },
+                { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-17", status: "pendente" },
+                { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-18", status: "pendente" },
+                { casa: "vaninna", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-18", status: "pendente" },
+                { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-19", status: "pendente" },
+                { casa: "bossa nova", tipo: "Limpeza Normal", valor: "36.00", data: "2026-07-19", status: "pendente" },
+                { casa: "vaninna", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-20", status: "pendente" },
+                { casa: "boa vista", tipo: "Limpeza Geral", valor: "120.00", data: "2026-07-21", status: "pendente" },
+                { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-22", status: "pendente" },
+                { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-23", status: "pendente" },
+                { casa: "Dune", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-23", status: "pendente" },
+                { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-24", status: "pendente" },
+                { casa: "Do Rodolfo", tipo: "Limpeza Normal", valor: "0.00", data: "2026-07-24", status: "pendente" },
+                { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-25", status: "pendente" },
+                { casa: "casa azul", tipo: "Limpeza Geral", valor: "60.00", data: "2026-07-25", status: "pendente" },
+                { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-26", status: "pendente" },
+                { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-27", status: "pendente" }
+            ];
+            localStorage.setItem('faxinas_v4', JSON.stringify(faxinas));
+        }
+
+        // Ordenar sempre por data (cronológica)
+        faxinas.sort((a, b) => new Date(a.data + 'T00:00:00') - new Date(b.data + 'T00:00:00'));
+
+        const mesesNomes = [
+            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", 
+            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+        ];
+
+        const formFaxina = document.getElementById('formFaxina');
+        const listaPendentes = document.getElementById('listaPendentes');
+        const listaRecebidosMeses = document.getElementById('listaRecebidosMeses');
+        const totalPendenteEl = document.getElementById('totalPendente');
+        const qtdPendenteEl = document.getElementById('qtdPendente');
+        const contadorPendentes = document.getElementById('contadorPendentes');
+        const totalRecebidoEl = document.getElementById('totalRecebido');
+        const qtdRecebidoEl = document.getElementById('qtdRecebido');
+        const contadorRecebidos = document.getElementById('contadorRecebidos');
+
+        function toggleMenu() {
+            const drawer = document.getElementById('drawerMenu');
+            const overlay = document.getElementById('drawerOverlay');
+            const isOpen = drawer.classList.contains('translate-x-0');
+
+            if (isOpen) {
+                drawer.classList.remove('translate-x-0');
+                drawer.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            } else {
+                drawer.classList.remove('-translate-x-full');
+                drawer.classList.add('translate-x-0');
+                overlay.classList.remove('hidden');
+            }
+        }
+
+        function toggleModalNovaFaxina() {
+            const modal = document.getElementById('modalNovaFaxina');
+            modal.classList.toggle('hidden');
+            if (!modal.classList.contains('hidden')) {
+                document.getElementById('dataFaxina').valueAsDate = new Date();
+            }
+        }
+
+        function mudarAba(aba) {
+            toggleMenu();
+            const secPendentes = document.getElementById('secaoPendentes');
+            const secHistorico = document.getElementById('secaoHistorico');
+
+            if (aba === 'pendentes') {
+                secPendentes.classList.remove('hidden');
+                secHistorico.classList.add('hidden');
+            } else {
+                secPendentes.classList.add('hidden');
+                secHistorico.classList.remove('hidden');
+            }
+        }
+
+        function toggleMesAccordion(id) {
+            const conteudo = document.getElementById(`conteudo-${id}`);
+            const icone = document.getElementById(`icone-${id}`);
+            conteudo.classList.toggle('hidden');
+            icone.classList.toggle('rotate-180');
+        }
+
+        function atualizarTela() {
+            faxinas.sort((a, b) => new Date(a.data + 'T00:00:00') - new Date(b.data + 'T00:00:00'));
+
+            listaPendentes.innerHTML = '';
+            listaRecebidosMeses.innerHTML = '';
+
+            let totalPendente = 0;
+            let qtdPendente = 0;
+            let totalRecebido = 0;
+            let qtdRecebido = 0;
+
+            const pendentes = [];
+            const recebidosPorMes = {};
+
+            faxinas.forEach((f, index) => {
+                if (!f.status) f.status = 'pendente';
+
+                if (f.status === 'pendente') {
+                    totalPendente += parseFloat(f.valor) || 0;
+                    qtdPendente++;
+                    pendentes.push({ ...f, originalIndex: index });
+                } else {
+                    totalRecebido += parseFloat(f.valor) || 0;
+                    qtdRecebido++;
+
+                    const [ano, mes] = f.data.split('-');
+                    const chaveMes = `${ano}-${mes}`;
+
+                    if (!recebidosPorMes[chaveMes]) {
+                        recebidosPorMes[chaveMes] = {
+                            ano: ano,
+                            mesIndex: parseInt(mes) - 1,
+                            totalMes: 0,
+                            itens: []
+                        };
+                    }
+                    recebidosPorMes[chaveMes].totalMes += parseFloat(f.valor) || 0;
+                    recebidosPorMes[chaveMes].itens.push({ ...f, originalIndex: index });
+                }
+            });
+
+            if (pendentes.length === 0) {
+                listaPendentes.innerHTML = '<p class="text-center text-slate-400 text-sm py-6">Nenhuma faxina pendente.</p>';
+            } else {
+                pendentes.forEach((f) => {
+                    const dataFormatada = new Date(f.data + 'T00:00:00').toLocaleDateString('pt-BR');
+                    const valorFormatado = (parseFloat(f.valor) || 0).toFixed(2).replace('.', ',');
+
+                    const item = document.createElement('div');
+                    item.className = 'flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100 text-sm';
+                    item.innerHTML = `
+                        <div class="space-y-0.5">
+                            <span class="font-bold text-slate-700 block">${f.casa}</span>
+                            <span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md font-medium inline-block">${f.tipo}</span>
+                            <span class="text-xs text-slate-400 block">${dataFormatada}</span>
+                        </div>
+                        <div class="text-right flex items-center space-x-1.5">
+                            <div>
+                                <span class="font-bold text-emerald-600 block">R$ ${valorFormatado}</span>
+                            </div>
+                            <button onclick="editarValor(${f.originalIndex})" title="Editar Valor" class="text-slate-600 hover:text-slate-700 transition p-1.5 bg-slate-200 rounded-lg cursor-pointer">
+                                <i class="fa-solid fa-pen text-xs"></i>
+                            </button>
+                            <button onclick="darBaixa(${f.originalIndex})" title="Dar Baixa (Recebido)" class="text-white bg-emerald-600 hover:bg-emerald-700 transition p-1.5 rounded-lg cursor-pointer">
+                                <i class="fa-solid fa-check text-xs"></i>
+                            </button>
+                            <button onclick="enviarIndividual(${f.originalIndex})" title="Enviar no WhatsApp" class="text-emerald-600 hover:text-emerald-700 transition p-1.5 bg-emerald-50 rounded-lg cursor-pointer">
+                                <i class="fa-brands fa-whatsapp text-sm"></i>
+                            </button>
+                            <button onclick="removerFaxina(${f.originalIndex})" title="Apagar" class="text-slate-400 hover:text-red-500 transition p-1.5 cursor-pointer">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </div>
+                    `;
+                    listaPendentes.appendChild(item);
+                });
+            }
+
+            const chavesMeses = Object.keys(recebidosPorMes).sort().reverse();
+            if (chavesMeses.length === 0) {
+                listaRecebidosMeses.innerHTML = '<p class="text-center text-slate-400 text-sm py-6">Nenhum histórico registrado ainda.</p>';
+            } else {
+                chavesMeses.forEach((chave) => {
+                    const grupo = recebidosPorMes[chave];
+                    const nomeMes = mesesNomes[grupo.mesIndex];
+                    const totalMesFormatado = grupo.totalMes.toFixed(2).replace('.', ',');
+
+                    // Ordenar os itens dentro do mês do mais recente para o mais antigo
+                    grupo.itens.sort((a, b) => new Date(b.data + 'T00:00:00') - new Date(a.data + 'T00:00:00'));
+
+                    const accordionDiv = document.createElement('div');
+                    accordionDiv.className = 'bg-slate-50 rounded-xl border border-slate-100 overflow-hidden';
+                    
+                    let itensHtml = '';
+                    grupo.itens.forEach((f) => {
+                        const dataFormatada = new Date(f.data + 'T00:00:00').toLocaleDateString('pt-BR');
+                        const valorFormatado = (parseFloat(f.valor) || 0).toFixed(2).replace('.', ',');
+                        
+                        itensHtml += `
+                            <div class="flex justify-between items-center p-3 bg-white rounded-lg border border-slate-100 text-sm">
+                                <div class="space-y-0.5">
+                                    <span class="font-bold text-slate-700 block">${f.casa}</span>
+                                    <span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md font-medium inline-block">${f.tipo}</span>
+                                    <span class="text-xs text-slate-400 block">${dataFormatada}</span>
+                                </div>
+                                <div class="text-right flex items-center space-x-2">
+                                    <span class="font-bold text-emerald-600 block">R$ ${valorFormatado}</span>
+                                    <button onclick="voltarPendente(${f.originalIndex})" title="Voltar para Pendente" class="text-amber-600 hover:text-amber-700 transition p-1.5 bg-amber-50 rounded-lg cursor-pointer">
+                                        <i class="fa-solid fa-rotate-left text-xs"></i>
+                                    </button>
+                                    <button onclick="removerFaxina(${f.originalIndex})" title="Apagar" class="text-slate-400 hover:text-red-500 transition p-1.5 cursor-pointer">
+                                        <i class="fa-solid fa-trash-can text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    accordionDiv.innerHTML = `
+                        <button onclick="toggleMesAccordion('${chave}')" class="w-full p-4 flex justify-between items-center bg-white hover:bg-slate-100 transition cursor-pointer">
+                            <div class="text-left">
+                                <span class="font-bold text-slate-700 block text-base">${nomeMes} de ${grupo.ano}</span>
+                                <span class="text-xs text-slate-400">${grupo.itens.length} limpeza(s)</span>
+                            </div>
+                            <div class="text-right flex items-center space-x-3">
+                                <span class="font-bold text-emerald-600">R$ ${totalMesFormatado}</span>
+                                <i id="icone-${chave}" class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform"></i>
+                            </div>
+                        </button>
+                        <div id="conteudo-${chave}" class="p-3 space-y-2 border-t border-slate-100 hidden bg-slate-50">
+                            ${itensHtml}
+                        </div>
+                    `;
+                    listaRecebidosMeses.appendChild(accordionDiv);
+                });
+            }
+
+            totalPendenteEl.textContent = `R$ ${totalPendente.toFixed(2).replace('.', ',')}`;
+            qtdPendenteEl.textContent = qtdPendente;
+            contadorPendentes.textContent = `${qtdPendente} registro${qtdPendente > 1 ? 's' : ''}`;
+
+            totalRecebidoEl.textContent = `R$ ${totalRecebido.toFixed(2).replace('.', ',')}`;
+            qtdRecebidoEl.textContent = qtdRecebido;
+            contadorRecebidos.textContent = `${qtdRecebido} registro${qtdRecebido > 1 ? 's' : ''}`;
+        }
+
+        formFaxina.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const enviarZap = document.getElementById('enviarZapCheck').checked;
+
+            const novaFaxina = {
+                casa: document.getElementById('nomeCasa').value,
+                tipo: document.getElementById('tipoFaxina').value,
+                valor: document.getElementById('valorFaxina').value,
+                data: document.getElementById('dataFaxina').value,
+                status: 'pendente'
+            };
+
+            faxinas.unshift(novaFaxina);
+            localStorage.setItem('faxinas_v4', JSON.stringify(faxinas));
+            
+            formFaxina.reset();
+            document.getElementById('enviarZapCheck').checked = true;
+            toggleModalNovaFaxina();
+            atualizarTela();
+
+            if (enviarZap) {
+                enviarIndividualTexto(novaFaxina);
+            }
+        });
+
+        function editarValor(index) {
+            const f = faxinas[index];
+            const novoValorStr = prompt(`Editar valor para ${f.casa} (${f.tipo}) - Data: ${f.data}:`, f.valor);
+            if (novoValorStr !== null) {
+                const valorLimpo = parseFloat(novoValorStr.replace(',', '.'));
+                if (!isNaN(valorLimpo)) {
+                    faxinas[index].valor = valorLimpo.toFixed(2);
+                    localStorage.setItem('faxinas_v4', JSON.stringify(faxinas));
+                    atualizarTela();
+                } else {
+                    alert('Valor inválido. Digite apenas números.');
+                }
+            }
+        }
+
+        function darBaixa(index) {
+            faxinas[index].status = 'recebido';
+            localStorage.setItem('faxinas_v4', JSON.stringify(faxinas));
+            atualizarTela();
+        }
+
+        function voltarPendente(index) {
+            faxinas[index].status = 'pendente';
+            localStorage.setItem('faxinas_v4', JSON.stringify(faxinas));
+            atualizarTela();
+        }
+
+        function enviarIndividual(index) {
+            const f = faxinas[index];
+            enviarIndividualTexto(f);
+        }
+
+        function abrirWhatsApp(texto) {
+            const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
+            const link = document.createElement('a');
+            link.href = url;
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function enviarIndividualTexto(f) {
+            const dataFormatada = new Date(f.data + 'T00:00:00').toLocaleDateString('pt-BR');
+            const valorFormatado = (parseFloat(f.valor) || 0).toFixed(2).replace('.', ',');
+            const texto = `Data: ${dataFormatada}\nCasa: ${f.casa}\nServiço: ${f.tipo}\nValor: R$ ${valorFormatado}`;
+            abrirWhatsApp(texto);
+        }
+
+        function enviarWhatsAppGeral() {
+            const pendentes = faxinas.filter(f => f.status === 'pendente' || !f.status);
+            if (pendentes.length === 0) {
+                alert('Não há faxinas pendentes para enviar.');
+                return;
+            }
+
+            let texto = "Resumo de Faxinas Pendentes:\n\n";
+            let totalGeral = 0;
+
+            pendentes.forEach((f) => {
+                const dataFormatada = new Date(f.data + 'T00:00:00').toLocaleDateString('pt-BR');
+                const valorFormatado = (parseFloat(f.valor) || 0).toFixed(2).replace('.', ',');
+                texto += `Data: ${dataFormatada}\nCasa: ${f.casa}\nServiço: ${f.tipo}\nValor: R$ ${valorFormatado}\n\n`;
+                totalGeral += parseFloat(f.valor) || 0;
+            });
+
+            texto += `Total a Receber: R$ ${totalGeral.toFixed(2).replace('.', ',')}`;
+            abrirWhatsApp(texto);
+        }
+
+        function removerFaxina(index) {
+            if (confirm('Deseja realmente apagar este registro?')) {
+                faxinas.splice(index, 1);
+                localStorage.setItem('faxinas_v4', JSON.stringify(faxinas));
+                atualizarTela();
+            }
+        }
+
+        atualizarTela();
+    </script>
+</body>
+</html>

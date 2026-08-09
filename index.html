@@ -33,9 +33,12 @@
             <button onclick="mudarAba('historico')" class="w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-emerald-50 text-slate-700 font-medium cursor-pointer transition text-left">
                 <i class="fa-solid fa-clock-rotate-left text-emerald-600 w-5"></i><span>Histórico de Recebidos</span>
             </button>
+            <button onclick="mudarAba('casas')" class="w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-emerald-50 text-slate-700 font-medium cursor-pointer transition text-left">
+                <i class="fa-solid fa-house-chimney text-emerald-600 w-5"></i><span>Gerenciar Casas & Valores</span>
+            </button>
         </div>
         <div class="p-4 border-t border-slate-100 text-center text-xs text-slate-400">
-            Controle de Faxinas v3.3
+            Controle de Faxinas v4.0
         </div>
     </div>
 
@@ -56,19 +59,8 @@
             <form id="formFaxina" class="space-y-4">
                 <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1">Nome da Casa / Cliente</label>
-                    <input type="text" id="nomeCasa" list="listaCasas" required placeholder="Selecione ou digite..." class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
-                    <datalist id="listaCasas">
-                        <option value="vaninna">
-                        <option value="Boa Vista">
-                        <option value="dune">
-                        <option value="bossa nova">
-                        <option value="camuripim">
-                        <option value="casa azul">
-                        <option value="kasa Brasil">
-                        <option value="guaiuba">
-                        <option value="vila tropicalle">
-                        <option value="rodolfo">
-                    </datalist>
+                    <input type="text" id="nomeCasa" list="listaCasas" required placeholder="Selecione ou digite..." onchange="preencherValorCasa(this.value)" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
+                    <datalist id="listaCasas"></datalist>
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1">Tipo de Faxina</label>
@@ -101,7 +93,6 @@
     <main class="max-w-md mx-auto p-4 space-y-6">
         <!-- SEÇÃO: TELA INICIAL (PENDENTES) -->
         <div id="secaoPendentes" class="space-y-6">
-            <!-- Cards de Resumo -->
             <div class="grid grid-cols-2 gap-4">
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 text-center">
                     <span class="text-xs text-slate-400 block uppercase font-semibold">A Receber</span>
@@ -113,13 +104,11 @@
                 </div>
             </div>
 
-            <!-- Botão de Resumo Geral do WhatsApp -->
             <button onclick="enviarWhatsAppGeral()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-2.5 rounded-xl transition text-sm shadow-sm flex items-center justify-center space-x-2 cursor-pointer">
                 <i class="fa-brands fa-whatsapp text-lg"></i>
                 <span>Enviar Resumo Pendente no WhatsApp</span>
             </button>
 
-            <!-- Lista de Faxinas Pendentes -->
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-lg font-semibold text-slate-700 flex items-center">
@@ -127,7 +116,6 @@
                     </h2>
                     <span id="contadorPendentes" class="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded-full font-medium">0 registros</span>
                 </div>
-                <!-- Bloco de Baixa em Lote por Mês injetado aqui via JS -->
                 <div id="listaPendentesMeses" class="space-y-3 mb-4"></div>
                 
                 <div id="listaPendentes" class="space-y-3 max-h-96 overflow-y-auto pr-1">
@@ -138,7 +126,6 @@
 
         <!-- SEÇÃO: HISTÓRICO DE RECEBIDOS -->
         <div id="secaoHistorico" class="space-y-6 hidden">
-            <!-- Cards de Resumo Recebidos -->
             <div class="grid grid-cols-2 gap-4">
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 text-center">
                     <span class="text-xs text-slate-400 block uppercase font-semibold">Total Recebido</span>
@@ -150,7 +137,6 @@
                 </div>
             </div>
 
-            <!-- Lista de Histórico Organizada por Mês -->
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-lg font-semibold text-slate-700 flex items-center">
@@ -163,51 +149,87 @@
                 </div>
             </div>
         </div>
+
+        <!-- SEÇÃO: GERENCIAR CASAS E VALORES -->
+        <div id="secaoCasas" class="space-y-6 hidden">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                <h2 class="text-lg font-semibold text-slate-700 mb-4 flex items-center">
+                    <i class="fa-solid fa-house-chimney text-emerald-600 mr-2"></i>Cadastrar Nova Casa
+                </h2>
+                <form id="formCadastrarCasa" class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Nome da Casa</label>
+                        <input type="text" id="novaCasaNome" required placeholder="Ex: Casa Praia" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Valor Padrão (R$)</label>
+                        <input type="number" step="0.01" id="novaCasaValor" required placeholder="0.00" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 rounded-lg text-sm transition cursor-pointer">
+                        Salvar Casa
+                    </button>
+                </form>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                <h2 class="text-lg font-semibold text-slate-700 mb-3 flex items-center">
+                    <i class="fa-solid fa-list text-emerald-600 mr-2"></i>Casas Cadastradas
+                </h2>
+                <div id="listaCasasCadastradas" class="space-y-2 max-h-80 overflow-y-auto pr-1">
+                    <p class="text-center text-slate-400 text-sm py-4">Nenhuma casa cadastrada.</p>
+                </div>
+            </div>
+        </div>
     </main>
 
     <script>
         document.getElementById('dataFaxina').valueAsDate = new Date();
 
-        let faxinas = JSON.parse(localStorage.getItem('faxinas_v5'));
-        
-        if (!faxinas) {
-            faxinas = [
-                { casa: "guaiuba", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-01", status: "pendente" },
-                { casa: "vannina", tipo: "Limpeza Geral", valor: "80.00", data: "2026-07-02", status: "pendente" },
-                { casa: "casa azul", tipo: "Limpeza Geral", valor: "60.00", data: "2026-07-03", status: "pendente" },
-                { casa: "vannina", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-04", status: "pendente" },
-                { casa: "vila dune", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-06", status: "pendente" },
-                { casa: "vannina", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-07", status: "pendente" },
-                { casa: "camurupim", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-09", status: "pendente" },
-                { casa: "vannina", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-09", status: "pendente" },
-                { casa: "vannina", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-11", status: "pendente" },
-                { casa: "vaninna", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-13", status: "pendente" },
-                { casa: "camurupim", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-14", status: "pendente" },
-                { casa: "casa azul", tipo: "Limpeza Normal", valor: "36.00", data: "2026-07-15", status: "pendente" },
-                { casa: "vaninna", tipo: "Limpeza Geral", valor: "80.00", data: "2026-07-16", status: "pendente" },
-                { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-16", status: "pendente" },
-                { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-17", status: "pendente" },
-                { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-18", status: "pendente" },
-                { casa: "vaninna", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-18", status: "pendente" },
-                { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-19", status: "pendente" },
-                { casa: "bossa nova", tipo: "Limpeza Normal", valor: "36.00", data: "2026-07-19", status: "pendente" },
-                { casa: "vaninna", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-20", status: "pendente" },
-                { casa: "boa vista", tipo: "Limpeza Geral", valor: "120.00", data: "2026-07-21", status: "pendente" },
-                { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-22", status: "pendente" },
-                { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-23", status: "pendente" },
-                { casa: "Dune", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-23", status: "pendente" },
-                { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-24", status: "pendente" },
-                { casa: "Do Rodolfo", tipo: "Limpeza Normal", valor: "0.00", data: "2026-07-24", status: "pendente" },
-                { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-25", status: "pendente" },
-                { casa: "casa azul", tipo: "Limpeza Geral", valor: "60.00", data: "2026-07-25", status: "pendente" },
-                { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-26", status: "pendente" },
-                { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-27", status: "pendente" }
-            ];
-            localStorage.setItem('faxinas_v5', JSON.stringify(faxinas));
-        }
+        let faxinas = JSON.parse(localStorage.getItem('faxinas_v6')) || [
+            { casa: "guaiuba", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-01", status: "pendente" },
+            { casa: "vannina", tipo: "Limpeza Geral", valor: "80.00", data: "2026-07-02", status: "pendente" },
+            { casa: "casa azul", tipo: "Limpeza Geral", valor: "60.00", data: "2026-07-03", status: "pendente" },
+            { casa: "vannina", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-04", status: "pendente" },
+            { casa: "vila dune", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-06", status: "pendente" },
+            { casa: "vannina", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-07", status: "pendente" },
+            { casa: "camurupim", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-09", status: "pendente" },
+            { casa: "vannina", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-09", status: "pendente" },
+            { casa: "vannina", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-11", status: "pendente" },
+            { casa: "vaninna", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-13", status: "pendente" },
+            { casa: "camurupim", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-14", status: "pendente" },
+            { casa: "casa azul", tipo: "Limpeza Normal", valor: "36.00", data: "2026-07-15", status: "pendente" },
+            { casa: "vaninna", tipo: "Limpeza Geral", valor: "80.00", data: "2026-07-16", status: "pendente" },
+            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-16", status: "pendente" },
+            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-17", status: "pendente" },
+            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-18", status: "pendente" },
+            { casa: "vaninna", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-18", status: "pendente" },
+            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-19", status: "pendente" },
+            { casa: "bossa nova", tipo: "Limpeza Normal", valor: "36.00", data: "2026-07-19", status: "pendente" },
+            { casa: "vaninna", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-20", status: "pendente" },
+            { casa: "boa vista", tipo: "Limpeza Geral", valor: "120.00", data: "2026-07-21", status: "pendente" },
+            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-22", status: "pendente" },
+            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-23", status: "pendente" },
+            { casa: "Dune", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-23", status: "pendente" },
+            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-24", status: "pendente" },
+            { casa: "Do Rodolfo", tipo: "Limpeza Normal", valor: "0.00", data: "2026-07-24", status: "pendente" },
+            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-25", status: "pendente" },
+            { casa: "casa azul", tipo: "Limpeza Geral", valor: "60.00", data: "2026-07-25", status: "pendente" },
+            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-26", status: "pendente" },
+            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-27", status: "pendente" }
+        ];
 
-        // Ordenar sempre por data (cronológica)
-        faxinas.sort((a, b) => new Date(a.data + 'T00:00:00') - new Date(b.data + 'T00:00:00'));
+        let casasValores = JSON.parse(localStorage.getItem('casas_valores_v6')) || [
+            { nome: "vaninna", valor: "54.00" },
+            { nome: "Boa Vista", valor: "72.00" },
+            { nome: "dune", valor: "54.00" },
+            { nome: "bossa nova", valor: "36.00" },
+            { nome: "camurupim", valor: "54.00" },
+            { nome: "casa azul", valor: "36.00" },
+            { nome: "kasa Brasil", valor: "60.00" },
+            { nome: "guaiuba", valor: "72.00" },
+            { nome: "vila tropicalle", valor: "60.00" },
+            { nome: "rodolfo", valor: "0.00" }
+        ];
 
         const mesesNomes = [
             "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", 
@@ -245,20 +267,89 @@
             modal.classList.toggle('hidden');
             if (!modal.classList.contains('hidden')) {
                 document.getElementById('dataFaxina').valueAsDate = new Date();
+                atualizarDatalistCasas();
             }
         }
 
         function mudarAba(aba) {
             toggleMenu();
-            const secPendentes = document.getElementById('secaoPendentes');
-            const secHistorico = document.getElementById('secaoHistorico');
+            document.getElementById('secaoPendentes').classList.add('hidden');
+            document.getElementById('secaoHistorico').classList.add('hidden');
+            document.getElementById('secaoCasas').classList.add('hidden');
 
             if (aba === 'pendentes') {
-                secPendentes.classList.remove('hidden');
-                secHistorico.classList.add('hidden');
-            } else {
-                secPendentes.classList.add('hidden');
-                secHistorico.classList.remove('hidden');
+                document.getElementById('secaoPendentes').classList.remove('hidden');
+            } else if (aba === 'historico') {
+                document.getElementById('secaoHistorico').classList.remove('hidden');
+            } else if (aba === 'casas') {
+                document.getElementById('secaoCasas').classList.remove('hidden');
+                atualizarListaCasasCadastradas();
+            }
+        }
+
+        function atualizarDatalistCasas() {
+            const datalist = document.getElementById('listaCasas');
+            datalist.innerHTML = '';
+            casasValores.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.nome;
+                datalist.appendChild(opt);
+            });
+        }
+
+        function preencherValorCasa(nomeDigitado) {
+            const casaEncontrada = casasValores.find(c => c.nome.toLowerCase() === nomeDigitado.toLowerCase());
+            if (casaEncontrada) {
+                document.getElementById('valorFaxina').value = casaEncontrada.valor;
+            }
+        }
+
+        document.getElementById('formCadastrarCasa').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nome = document.getElementById('novaCasaNome').value.trim();
+            const valor = parseFloat(document.getElementById('novaCasaValor').value).toFixed(2);
+
+            if (casasValores.some(c => c.nome.toLowerCase() === nome.toLowerCase())) {
+                alert('Esta casa já está cadastrada.');
+                return;
+            }
+
+            casasValores.push({ nome, valor });
+            localStorage.setItem('casas_valores_v6', JSON.stringify(casasValores));
+            document.getElementById('formCadastrarCasa').reset();
+            atualizarListaCasasCadastradas();
+            alert('Casa cadastrada com sucesso!');
+        });
+
+        function atualizarListaCasasCadastradas() {
+            const container = document.getElementById('listaCasasCadastradas');
+            container.innerHTML = '';
+            if (casasValores.length === 0) {
+                container.innerHTML = '<p class="text-center text-slate-400 text-sm py-4">Nenhuma casa cadastrada.</p>';
+                return;
+            }
+
+            casasValores.sort((a, b) => a.nome.localeCompare(b.nome)).forEach((c, index) => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-sm';
+                div.innerHTML = `
+                    <div>
+                        <span class="font-bold text-slate-700 block">${c.nome}</span>
+                        <span class="text-xs text-emerald-600 font-semibold">R$ ${parseFloat(c.valor).toFixed(2).replace('.', ',')}</span>
+                    </div>
+                    <button onclick="removerCasa(${index})" class="text-slate-400 hover:text-red-500 p-1 cursor-pointer transition">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function removerCasa(index) {
+            if (confirm('Deseja apagar esta casa da lista?')) {
+                casasValores.splice(index, 1);
+                localStorage.setItem('casas_valores_v6', JSON.stringify(casasValores));
+                atualizarListaCasasCadastradas();
             }
         }
 
@@ -393,17 +484,25 @@
                     });
 
                     accordionDiv.innerHTML = `
-                        <button onclick="toggleMesAccordion('${chave}')" class="w-full p-4 flex justify-between items-center bg-white hover:bg-slate-100 transition cursor-pointer">
-                            <div class="text-left">
-                                <span class="font-bold text-slate-700 block text-base">${nomeMes} de ${grupo.ano}</span>
-                                <span class="text-xs text-slate-400">${grupo.itens.length} limpeza(s)</span>
+                        <div class="p-4 bg-white flex flex-col space-y-2 border-b border-slate-100">
+                            <button onclick="toggleMesAccordion('${chave}')" class="w-full flex justify-between items-center cursor-pointer text-left">
+                                <div>
+                                    <span class="font-bold text-slate-700 block text-base">${nomeMes} de ${grupo.ano}</span>
+                                    <span class="text-xs text-slate-400">${grupo.itens.length} limpeza(s)</span>
+                                </div>
+                                <div class="text-right flex items-center space-x-3">
+                                    <span class="font-bold text-emerald-600">R$ ${totalMesFormatado}</span>
+                                    <i id="icone-${chave}" class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform"></i>
+                                </div>
+                            </button>
+                            <div class="flex justify-end pt-1">
+                                <button onclick="restaurarMes('${chave}')" class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer flex items-center space-x-1 shadow-sm">
+                                    <i class="fa-solid fa-rotate-left"></i>
+                                    <span>Restaurar Mês (Voltar Pendentes)</span>
+                                </button>
                             </div>
-                            <div class="text-right flex items-center space-x-3">
-                                <span class="font-bold text-emerald-600">R$ ${totalMesFormatado}</span>
-                                <i id="icone-${chave}" class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform"></i>
-                            </div>
-                        </button>
-                        <div id="conteudo-${chave}" class="p-3 space-y-2 border-t border-slate-100 hidden bg-slate-50">
+                        </div>
+                        <div id="conteudo-${chave}" class="p-3 space-y-2 hidden bg-slate-50">
                             ${itensHtml}
                         </div>
                     `;
@@ -460,7 +559,21 @@
                         f.status = 'recebido';
                     }
                 });
-                localStorage.setItem('faxinas_v5', JSON.stringify(faxinas));
+                localStorage.setItem('faxinas_v6', JSON.stringify(faxinas));
+                atualizarTela();
+            }
+        }
+
+        function restaurarMes(chaveMes) {
+            const [ano, mes] = chaveMes.split('-');
+            const nomeMes = mesesNomes[parseInt(mes) - 1];
+            if (confirm(`Deseja restaurar todas as faxinas de ${nomeMes} de ${ano} de volta para Pendentes?`)) {
+                faxinas.forEach(f => {
+                    if (f.status === 'recebido' && f.data.startsWith(chaveMes)) {
+                        f.status = 'pendente';
+                    }
+                });
+                localStorage.setItem('faxinas_v6', JSON.stringify(faxinas));
                 atualizarTela();
             }
         }
@@ -478,7 +591,7 @@
             };
 
             faxinas.unshift(novaFaxina);
-            localStorage.setItem('faxinas_v5', JSON.stringify(faxinas));
+            localStorage.setItem('faxinas_v6', JSON.stringify(faxinas));
             
             formFaxina.reset();
             document.getElementById('enviarZapCheck').checked = true;
@@ -497,7 +610,7 @@
                 const valorLimpo = parseFloat(novoValorStr.replace(',', '.'));
                 if (!isNaN(valorLimpo)) {
                     faxinas[index].valor = valorLimpo.toFixed(2);
-                    localStorage.setItem('faxinas_v5', JSON.stringify(faxinas));
+                    localStorage.setItem('faxinas_v6', JSON.stringify(faxinas));
                     atualizarTela();
                 } else {
                     alert('Valor inválido. Digite apenas números.');
@@ -507,13 +620,13 @@
 
         function darBaixa(index) {
             faxinas[index].status = 'recebido';
-            localStorage.setItem('faxinas_v5', JSON.stringify(faxinas));
+            localStorage.setItem('faxinas_v6', JSON.stringify(faxinas));
             atualizarTela();
         }
 
         function voltarPendente(index) {
             faxinas[index].status = 'pendente';
-            localStorage.setItem('faxinas_v5', JSON.stringify(faxinas));
+            localStorage.setItem('faxinas_v6', JSON.stringify(faxinas));
             atualizarTela();
         }
 
@@ -563,7 +676,7 @@
         function removerFaxina(index) {
             if (confirm('Deseja realmente apagar este registro?')) {
                 faxinas.splice(index, 1);
-                localStorage.setItem('faxinas_v5', JSON.stringify(faxinas));
+                localStorage.setItem('faxinas_v6', JSON.stringify(faxinas));
                 atualizarTela();
             }
         }

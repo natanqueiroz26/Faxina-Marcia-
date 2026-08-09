@@ -215,13 +215,47 @@
         const qtdRecebidoEl = document.getElementById('qtdRecebido');
         const contadorRecebidos = document.getElementById('contadorRecebidos');
 
+        // Dados iniciais de Julho de 2026 para carga automática se o banco estiver vazio
+        const dadosIniciaisJulho2026 = [
+            {casa: "Guaiuba", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-01", status: "pendente"},
+            {casa: "Vannina", tipo: "Limpeza Geral", valor: "80.00", data: "2026-07-02", status: "pendente"},
+            {casa: "Casa Azul", tipo: "Limpeza Geral", valor: "60.00", data: "2026-07-03", status: "pendente"},
+            {casa: "Vannina", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-04", status: "pendente"},
+            {casa: "Vila Dune", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-06", status: "pendente"},
+            {casa: "Vannina", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-07", status: "pendente"},
+            {casa: "Camurupim", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-09", status: "pendente"},
+            {casa: "Vannina", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-09", status: "pendente"},
+            {casa: "Vannina", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-11", status: "pendente"},
+            {casa: "Vannina", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-13", status: "pendente"},
+            {casa: "Camurupim", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-14", status: "pendente"},
+            {casa: "Casa Azul", tipo: "Limpeza Normal", valor: "36.00", data: "2026-07-15", status: "pendente"},
+            {casa: "Vannina", tipo: "Limpeza Geral", valor: "80.00", data: "2026-07-16", status: "pendente"},
+            {casa: "Boa Vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-16", status: "pendente"},
+            {casa: "Boa Vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-17", status: "pendente"},
+            {casa: "Boa Vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-18", status: "pendente"},
+            {casa: "Vannina", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-18", status: "pendente"},
+            {casa: "Boa Vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-19", status: "pendente"},
+            {casa: "Bossa Nova", tipo: "Limpeza Normal", valor: "36.00", data: "2026-07-19", status: "pendente"},
+            {casa: "Vannina", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-20", status: "pendente"},
+            {casa: "Boa Vista", tipo: "Limpeza Geral", valor: "120.00", data: "2026-07-21", status: "pendente"},
+            {casa: "Boa Vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-22", status: "pendente"},
+            {casa: "Boa Vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-23", status: "pendente"},
+            {casa: "Dune", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-23", status: "pendente"},
+            {casa: "Boa Vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-24", status: "pendente"},
+            {casa: "Do Rodolfo", tipo: "Limpeza Normal", valor: "0.00", data: "2026-07-24", status: "pendente"},
+            {casa: "Boa Vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-25", status: "pendente"},
+            {casa: "Casa Azul", tipo: "Limpeza Geral", valor: "60.00", data: "2026-07-25", status: "pendente"},
+            {casa: "Boa Vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-26", status: "pendente"},
+            {casa: "Boa Vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-27", status: "pendente"}
+        ];
+
         // Ouvir alterações em tempo real no Banco de Dados
         db.ref('casas').on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
                 casas = data;
             } else {
-                casas = ["vaninna", "Boa Vista", "dune", "bossa nova", "camuripim", "casa azul", "kasa Brasil", "guaiuba", "vila tropicalle", "rodolfo"];
+                casas = ["Vannina", "Boa Vista", "Dune", "Bossa Nova", "Camurupim", "Casa Azul", "Kasa Brasil", "Guaiuba", "Vila Tropicalle", "Do Rodolfo", "Vila Dune"];
                 db.ref('casas').set(casas);
             }
             atualizarDatalistCasas();
@@ -233,7 +267,8 @@
             if (data) {
                 faxinas = Array.isArray(data) ? data : Object.values(data);
             } else {
-                faxinas = [];
+                faxinas = dadosIniciaisJulho2026;
+                db.ref('faxinas').set(faxinas);
             }
             atualizarTela();
         });
@@ -379,7 +414,8 @@
             } else {
                 pendentes.forEach((f) => {
                     const dataFormatada = new Date(f.data + 'T00:00:00').toLocaleDateString('pt-BR');
-                    const valorFormatado = (parseFloat(f.valor) || 0).toFixed(2).replace('.', ',');
+                    const valorNum = parseFloat(f.valor);
+                    const valorFormatado = (isNaN(valorNum) || valorNum === 0) ? '(valor não informado)' : `R$ ${valorNum.toFixed(2).replace('.', ',')}`;
 
                     const item = document.createElement('div');
                     item.className = 'flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100 text-sm';
@@ -391,7 +427,7 @@
                         </div>
                         <div class="text-right flex items-center space-x-1.5">
                             <div>
-                                <span class="font-bold text-emerald-600 block">R$ ${valorFormatado}</span>
+                                <span class="font-bold text-emerald-600 block">${valorFormatado}</span>
                             </div>
                             <button onclick="editarValor(${f.originalIndex})" title="Editar Valor" class="text-slate-600 hover:text-slate-700 transition p-1.5 bg-slate-200 rounded-lg cursor-pointer">
                                 <i class="fa-solid fa-pen text-xs"></i>
@@ -426,7 +462,8 @@
                     let itensHtml = '';
                     grupo.itens.forEach((f) => {
                         const dataFormatada = new Date(f.data + 'T00:00:00').toLocaleDateString('pt-BR');
-                        const valorFormatado = (parseFloat(f.valor) || 0).toFixed(2).replace('.', ',');
+                        const valorNum = parseFloat(f.valor);
+                        const valorFormatado = (isNaN(valorNum) || valorNum === 0) ? '(valor não informado)' : `R$ ${valorNum.toFixed(2).replace('.', ',')}`;
                         
                         itensHtml += `
                             <div class="flex justify-between items-center p-3 bg-white rounded-lg border border-slate-100 text-sm">
@@ -436,7 +473,7 @@
                                     <span class="text-xs text-slate-400 block">${dataFormatada}</span>
                                 </div>
                                 <div class="text-right flex items-center space-x-2">
-                                    <span class="font-bold text-emerald-600 block">R$ ${valorFormatado}</span>
+                                    <span class="font-bold text-emerald-600 block">${valorFormatado}</span>
                                     <button onclick="voltarPendente(${f.originalIndex})" title="Voltar para Pendente" class="text-amber-600 hover:text-amber-700 transition p-1.5 bg-amber-50 rounded-lg cursor-pointer">
                                         <i class="fa-solid fa-rotate-left text-xs"></i>
                                     </button>
@@ -541,8 +578,9 @@
 
         function enviarIndividualTexto(f) {
             const dataFormatada = new Date(f.data + 'T00:00:00').toLocaleDateString('pt-BR');
-            const valorFormatado = (parseFloat(f.valor) || 0).toFixed(2).replace('.', ',');
-            const texto = `Data: ${dataFormatada}\nCasa: ${f.casa}\nServiço: ${f.tipo}\nValor: R$ ${valorFormatado}`;
+            const valorNum = parseFloat(f.valor);
+            const valorFormatado = (isNaN(valorNum) || valorNum === 0) ? '(valor não informado)' : `R$ ${valorNum.toFixed(2).replace('.', ',')}`;
+            const texto = `Data: ${dataFormatada}\nCasa: ${f.casa}\nServiço: ${f.tipo}\nValor: ${valorFormatado}`;
             abrirWhatsApp(texto);
         }
 
@@ -558,9 +596,10 @@
 
             pendentes.forEach((f) => {
                 const dataFormatada = new Date(f.data + 'T00:00:00').toLocaleDateString('pt-BR');
-                const valorFormatado = (parseFloat(f.valor) || 0).toFixed(2).replace('.', ',');
-                texto += `Data: ${dataFormatada}\nCasa: ${f.casa}\nServiço: ${f.tipo}\nValor: R$ ${valorFormatado}\n\n`;
-                totalGeral += parseFloat(f.valor) || 0;
+                const valorNum = parseFloat(f.valor);
+                const valorStr = (isNaN(valorNum) || valorNum === 0) ? '(valor não informado)' : `R$ ${valorNum.toFixed(2).replace('.', ',')}`;
+                texto += `Data: ${dataFormatada}\nCasa: ${f.casa}\nServiço: ${f.tipo}\nValor: ${valorStr}\n\n`;
+                totalGeral += valorNum || 0;
             });
 
             texto += `Total a Receber: R$ ${totalGeral.toFixed(2).replace('.', ',')}`;
@@ -576,3 +615,4 @@
     </script>
 </body>
 </html>
+

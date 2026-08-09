@@ -38,7 +38,7 @@
             </button>
         </div>
         <div class="p-4 border-t border-slate-100 text-center text-xs text-slate-400">
-            Controle de Faxinas v4.4
+            Controle de Faxinas v4.6
         </div>
     </div>
 
@@ -195,14 +195,49 @@
     <script>
         document.getElementById('dataFaxina').valueAsDate = new Date();
 
-        let faxinas = JSON.parse(localStorage.getItem('faxinas')) || [];
-        
-        // Puxa qualquer dado salvo anteriormente no navegador (em qualquer chave antiga)
-        let casasSalvasAntigas = JSON.parse(localStorage.getItem('casas_valores')) || 
-                                 JSON.parse(localStorage.getItem('casas_valores_v8')) || 
-                                 JSON.parse(localStorage.getItem('casas_valores_v7')) || [];
+        // Lista padrão preenchida com os dados de julho que você enviou
+        let faxinasIniciais = [
+            { casa: "guaiuba", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-01", status: "pendente" },
+            { casa: "vannina", tipo: "Limpeza Geral", valor: "80.00", data: "2026-07-02", status: "pendente" },
+            { casa: "casa azul", tipo: "Limpeza Geral", valor: "60.00", data: "2026-07-03", status: "pendente" },
+            { casa: "vannina", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-04", status: "pendente" },
+            { casa: "vila dune", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-06", status: "pendente" },
+            { casa: "vannina", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-07", status: "pendente" },
+            { casa: "camurupim", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-09", status: "pendente" },
+            { casa: "vannina", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-09", status: "pendente" },
+            { casa: "vannina", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-11", status: "pendente" },
+            { casa: "vaninna", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-13", status: "pendente" },
+            { casa: "camurupim", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-14", status: "pendente" },
+            { casa: "casa azul", tipo: "Limpeza Normal", valor: "36.00", data: "2026-07-15", status: "pendente" },
+            { casa: "vaninna", tipo: "Limpeza Geral", valor: "80.00", data: "2026-07-16", status: "pendente" },
+            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-16", status: "pendente" },
+            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-17", status: "pendente" },
+            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-18", status: "pendente" },
+            { casa: "vaninna", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-18", status: "pendente" },
+            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-19", status: "pendente" },
+            { casa: "bossa nova", tipo: "Limpeza Normal", valor: "36.00", data: "2026-07-19", status: "pendente" },
+            { casa: "vaninna", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-20", status: "pendente" },
+            { casa: "boa vista", tipo: "Limpeza Geral", valor: "120.00", data: "2026-07-21", status: "pendente" },
+            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-22", status: "pendente" },
+            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-23", status: "pendente" },
+            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-24", status: "pendente" },
+            { casa: "Do Rodolfo", tipo: "Limpeza Normal", valor: "0.00", data: "2026-07-24", status: "pendente" },
+            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-25", status: "pendente" },
+            { casa: "casa azul", tipo: "Limpeza Geral", valor: "60.00", data: "2026-07-25", status: "pendente" },
+            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-26", status: "pendente" },
+            { casa: "Dune", tipo: "Limpeza Normal", valor: "54.00", data: "2026-07-23", status: "pendente" },
+            { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-27", status: "pendente" }
+        ];
 
-        // Se não encontrar nada salvo anteriormente, usa a lista padrão original
+        // Recupera faxinas do localStorage ou usa a lista inicial se estiver vazio
+        let faxinas = JSON.parse(localStorage.getItem('faxinas'));
+        if (!faxinas || faxinas.length === 0) {
+            faxinas = faxinasIniciais;
+            localStorage.setItem('faxinas', JSON.stringify(faxinas));
+        }
+        
+        let casasSalvasAntigas = JSON.parse(localStorage.getItem('casas_valores')) || [];
+
         if (casasSalvasAntigas.length === 0) {
             casasSalvasAntigas = [
                 { nome: "Queiroz", normal: "50.00", geral: "100.00", cafe: "30.00" },
@@ -220,7 +255,6 @@
         }
 
         let casasValores = casasSalvasAntigas;
-        // Salva na chave principal unificada para garantir persistência
         localStorage.setItem('casas_valores', JSON.stringify(casasValores));
 
         const mesesNomes = [

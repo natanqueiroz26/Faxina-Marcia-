@@ -38,7 +38,7 @@
             </button>
         </div>
         <div class="p-4 border-t border-slate-100 text-center text-xs text-slate-400">
-            Controle de Faxinas v4.0
+            Controle de Faxinas v4.1
         </div>
     </div>
 
@@ -59,12 +59,12 @@
             <form id="formFaxina" class="space-y-4">
                 <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1">Nome da Casa / Cliente</label>
-                    <input type="text" id="nomeCasa" list="listaCasas" required placeholder="Selecione ou digite..." onchange="preencherValorCasa(this.value)" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
+                    <input type="text" id="nomeCasa" list="listaCasas" required placeholder="Selecione ou digite..." oninput="atualizarValorAutomatico()" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
                     <datalist id="listaCasas"></datalist>
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1">Tipo de Faxina</label>
-                    <select id="tipoFaxina" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-white">
+                    <select id="tipoFaxina" onchange="atualizarValorAutomatico()" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-white">
                         <option value="Limpeza Normal">Limpeza Normal</option>
                         <option value="Limpeza Geral">Limpeza Geral</option>
                     </select>
@@ -154,18 +154,24 @@
         <div id="secaoCasas" class="space-y-6 hidden">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
                 <h2 class="text-lg font-semibold text-slate-700 mb-4 flex items-center">
-                    <i class="fa-solid fa-house-chimney text-emerald-600 mr-2"></i>Cadastrar Nova Casa
+                    <i class="fa-solid fa-house-chimney text-emerald-600 mr-2"></i>Cadastrar Casa & Valores
                 </h2>
                 <form id="formCadastrarCasa" class="space-y-3">
                     <div>
                         <label class="block text-xs font-medium text-slate-600 mb-1">Nome da Casa</label>
-                        <input type="text" id="novaCasaNome" required placeholder="Ex: Casa Praia" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <input type="text" id="novaCasaNome" required placeholder="Ex: Queiroz" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
                     </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">Valor Padrão (R$)</label>
-                        <input type="number" step="0.01" id="novaCasaValor" required placeholder="0.00" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Limpeza Normal (R$)</label>
+                            <input type="number" step="0.01" id="novaCasaNormal" required placeholder="50.00" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Limpeza Geral (R$)</label>
+                            <input type="number" step="0.01" id="novaCasaGeral" required placeholder="100.00" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
                     </div>
-                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 rounded-lg text-sm transition cursor-pointer">
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 rounded-lg text-sm transition cursor-pointer mt-1">
                         Salvar Casa
                     </button>
                 </form>
@@ -185,7 +191,7 @@
     <script>
         document.getElementById('dataFaxina').valueAsDate = new Date();
 
-        let faxinas = JSON.parse(localStorage.getItem('faxinas_v6')) || [
+        let faxinas = JSON.parse(localStorage.getItem('faxinas_v7')) || [
             { casa: "guaiuba", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-01", status: "pendente" },
             { casa: "vannina", tipo: "Limpeza Geral", valor: "80.00", data: "2026-07-02", status: "pendente" },
             { casa: "casa azul", tipo: "Limpeza Geral", valor: "60.00", data: "2026-07-03", status: "pendente" },
@@ -218,17 +224,18 @@
             { casa: "boa vista", tipo: "Limpeza Normal", valor: "72.00", data: "2026-07-27", status: "pendente" }
         ];
 
-        let casasValores = JSON.parse(localStorage.getItem('casas_valores_v6')) || [
-            { nome: "vaninna", valor: "54.00" },
-            { nome: "Boa Vista", valor: "72.00" },
-            { nome: "dune", valor: "54.00" },
-            { nome: "bossa nova", valor: "36.00" },
-            { nome: "camurupim", valor: "54.00" },
-            { nome: "casa azul", valor: "36.00" },
-            { nome: "kasa Brasil", valor: "60.00" },
-            { nome: "guaiuba", valor: "72.00" },
-            { nome: "vila tropicalle", valor: "60.00" },
-            { nome: "rodolfo", valor: "0.00" }
+        let casasValores = JSON.parse(localStorage.getItem('casas_valores_v7')) || [
+            { nome: "Queiroz", normal: "50.00", geral: "100.00" },
+            { nome: "vaninna", normal: "54.00", geral: "80.00" },
+            { nome: "Boa Vista", normal: "72.00", geral: "120.00" },
+            { nome: "dune", normal: "54.00", geral: "80.00" },
+            { nome: "bossa nova", normal: "36.00", geral: "60.00" },
+            { nome: "camurupim", normal: "54.00", geral: "80.00" },
+            { nome: "casa azul", normal: "36.00", geral: "60.00" },
+            { nome: "kasa Brasil", normal: "60.00", geral: "90.00" },
+            { nome: "guaiuba", normal: "72.00", geral: "100.00" },
+            { nome: "vila tropicalle", normal: "60.00", geral: "90.00" },
+            { nome: "rodolfo", normal: "0.00", geral: "0.00" }
         ];
 
         const mesesNomes = [
@@ -297,28 +304,39 @@
             });
         }
 
-        function preencherValorCasa(nomeDigitado) {
-            const casaEncontrada = casasValores.find(c => c.nome.toLowerCase() === nomeDigitado.toLowerCase());
+        function atualizarValorAutomatico() {
+            const nomeInput = document.getElementById('nomeCasa').value.trim();
+            const tipoSelecao = document.getElementById('tipoFaxina').value;
+            const campoValor = document.getElementById('valorFaxina');
+
+            const casaEncontrada = casasValores.find(c => c.nome.toLowerCase() === nomeInput.toLowerCase());
             if (casaEncontrada) {
-                document.getElementById('valorFaxina').value = casaEncontrada.valor;
+                if (tipoSelecao === 'Limpeza Geral') {
+                    campoValor.value = casaEncontrada.geral || casaEncontrada.normal || '0.00';
+                } else {
+                    campoValor.value = casaEncontrada.normal || '0.00';
+                }
             }
         }
 
         document.getElementById('formCadastrarCasa').addEventListener('submit', (e) => {
             e.preventDefault();
             const nome = document.getElementById('novaCasaNome').value.trim();
-            const valor = parseFloat(document.getElementById('novaCasaValor').value).toFixed(2);
+            const normal = parseFloat(document.getElementById('novaCasaNormal').value).toFixed(2);
+            const geral = parseFloat(document.getElementById('novaCasaGeral').value).toFixed(2);
 
-            if (casasValores.some(c => c.nome.toLowerCase() === nome.toLowerCase())) {
-                alert('Esta casa já está cadastrada.');
-                return;
+            const indexExistente = casasValores.findIndex(c => c.nome.toLowerCase() === nome.toLowerCase());
+            if (indexExistente >= 0) {
+                casasValores[indexExistente] = { nome, normal, geral };
+                alert('Valores da casa atualizados com sucesso!');
+            } else {
+                casasValores.push({ nome, normal, geral });
+                alert('Casa cadastrada com sucesso!');
             }
 
-            casasValores.push({ nome, valor });
-            localStorage.setItem('casas_valores_v6', JSON.stringify(casasValores));
+            localStorage.setItem('casas_valores_v7', JSON.stringify(casasValores));
             document.getElementById('formCadastrarCasa').reset();
             atualizarListaCasasCadastradas();
-            alert('Casa cadastrada com sucesso!');
         });
 
         function atualizarListaCasasCadastradas() {
@@ -330,12 +348,15 @@
             }
 
             casasValores.sort((a, b) => a.nome.localeCompare(b.nome)).forEach((c, index) => {
+                const valNormal = parseFloat(c.normal || 0).toFixed(2).replace('.', ',');
+                const valGeral = parseFloat(c.geral || 0).toFixed(2).replace('.', ',');
+
                 const div = document.createElement('div');
                 div.className = 'flex justify-between items-center p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-sm';
                 div.innerHTML = `
                     <div>
                         <span class="font-bold text-slate-700 block">${c.nome}</span>
-                        <span class="text-xs text-emerald-600 font-semibold">R$ ${parseFloat(c.valor).toFixed(2).replace('.', ',')}</span>
+                        <span class="text-xs text-slate-500">Normal: <strong class="text-emerald-600">R$ ${valNormal}</strong> | Geral: <strong class="text-emerald-600">R$ ${valGeral}</strong></span>
                     </div>
                     <button onclick="removerCasa(${index})" class="text-slate-400 hover:text-red-500 p-1 cursor-pointer transition">
                         <i class="fa-solid fa-trash-can text-xs"></i>
@@ -348,7 +369,7 @@
         function removerCasa(index) {
             if (confirm('Deseja apagar esta casa da lista?')) {
                 casasValores.splice(index, 1);
-                localStorage.setItem('casas_valores_v6', JSON.stringify(casasValores));
+                localStorage.setItem('casas_valores_v7', JSON.stringify(casasValores));
                 atualizarListaCasasCadastradas();
             }
         }
@@ -559,7 +580,7 @@
                         f.status = 'recebido';
                     }
                 });
-                localStorage.setItem('faxinas_v6', JSON.stringify(faxinas));
+                localStorage.setItem('faxinas_v7', JSON.stringify(faxinas));
                 atualizarTela();
             }
         }
@@ -573,7 +594,7 @@
                         f.status = 'pendente';
                     }
                 });
-                localStorage.setItem('faxinas_v6', JSON.stringify(faxinas));
+                localStorage.setItem('faxinas_v7', JSON.stringify(faxinas));
                 atualizarTela();
             }
         }
@@ -591,7 +612,7 @@
             };
 
             faxinas.unshift(novaFaxina);
-            localStorage.setItem('faxinas_v6', JSON.stringify(faxinas));
+            localStorage.setItem('faxinas_v7', JSON.stringify(faxinas));
             
             formFaxina.reset();
             document.getElementById('enviarZapCheck').checked = true;
@@ -610,7 +631,7 @@
                 const valorLimpo = parseFloat(novoValorStr.replace(',', '.'));
                 if (!isNaN(valorLimpo)) {
                     faxinas[index].valor = valorLimpo.toFixed(2);
-                    localStorage.setItem('faxinas_v6', JSON.stringify(faxinas));
+                    localStorage.setItem('faxinas_v7', JSON.stringify(faxinas));
                     atualizarTela();
                 } else {
                     alert('Valor inválido. Digite apenas números.');
@@ -620,13 +641,13 @@
 
         function darBaixa(index) {
             faxinas[index].status = 'recebido';
-            localStorage.setItem('faxinas_v6', JSON.stringify(faxinas));
+            localStorage.setItem('faxinas_v7', JSON.stringify(faxinas));
             atualizarTela();
         }
 
         function voltarPendente(index) {
             faxinas[index].status = 'pendente';
-            localStorage.setItem('faxinas_v6', JSON.stringify(faxinas));
+            localStorage.setItem('faxinas_v7', JSON.stringify(faxinas));
             atualizarTela();
         }
 
@@ -676,7 +697,7 @@
         function removerFaxina(index) {
             if (confirm('Deseja realmente apagar este registro?')) {
                 faxinas.splice(index, 1);
-                localStorage.setItem('faxinas_v6', JSON.stringify(faxinas));
+                localStorage.setItem('faxinas_v7', JSON.stringify(faxinas));
                 atualizarTela();
             }
         }
@@ -685,3 +706,4 @@
     </script>
 </body>
 </html>
+

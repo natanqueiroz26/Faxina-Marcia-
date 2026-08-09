@@ -38,11 +38,11 @@
             </button>
         </div>
         <div class="p-4 border-t border-slate-100 text-center text-xs text-slate-400">
-            Controle de Faxinas v4.3
+            Controle de Faxinas v4.4
         </div>
     </div>
 
-    <!-- Botão Flutuante (Símbolo de Adicionar) -->
+    <!-- Botão Flutuante -->
     <button onclick="toggleModalNovaFaxina()" class="fixed bottom-6 right-6 bg-emerald-600 hover:bg-emerald-700 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-xl cursor-pointer z-30 transition-transform active:scale-95">
         <i class="fa-solid fa-plus"></i>
     </button>
@@ -195,24 +195,33 @@
     <script>
         document.getElementById('dataFaxina').valueAsDate = new Date();
 
-        let faxinas = JSON.parse(localStorage.getItem('faxinas')) || JSON.parse(localStorage.getItem('faxinas_v8')) || [];
+        let faxinas = JSON.parse(localStorage.getItem('faxinas')) || [];
         
-        // Recupera dados antigos salvos no navegador para não perder nada
-        let casasSalvasAntigas = JSON.parse(localStorage.getItem('casas_valores')) || JSON.parse(localStorage.getItem('casas_valores_v8')) || [
-            { nome: "Queiroz", normal: "50.00", geral: "100.00", cafe: "30.00" },
-            { nome: "vaninna", normal: "54.00", geral: "80.00", cafe: "30.00" },
-            { nome: "Boa Vista", normal: "72.00", geral: "120.00", cafe: "35.00" },
-            { nome: "dune", normal: "54.00", geral: "80.00", cafe: "30.00" },
-            { nome: "bossa nova", normal: "36.00", geral: "60.00", cafe: "25.00" },
-            { nome: "camurupim", normal: "54.00", geral: "80.00", cafe: "30.00" },
-            { nome: "casa azul", normal: "36.00", geral: "60.00", cafe: "25.00" },
-            { nome: "kasa Brasil", normal: "60.00", geral: "90.00", cafe: "30.00" },
-            { nome: "guaiuba", normal: "72.00", geral: "100.00", cafe: "35.00" },
-            { nome: "vila tropicalle", normal: "60.00", geral: "90.00", cafe: "30.00" },
-            { nome: "rodolfo", normal: "0.00", geral: "0.00", cafe: "0.00" }
-        ];
+        // Puxa qualquer dado salvo anteriormente no navegador (em qualquer chave antiga)
+        let casasSalvasAntigas = JSON.parse(localStorage.getItem('casas_valores')) || 
+                                 JSON.parse(localStorage.getItem('casas_valores_v8')) || 
+                                 JSON.parse(localStorage.getItem('casas_valores_v7')) || [];
+
+        // Se não encontrar nada salvo anteriormente, usa a lista padrão original
+        if (casasSalvasAntigas.length === 0) {
+            casasSalvasAntigas = [
+                { nome: "Queiroz", normal: "50.00", geral: "100.00", cafe: "30.00" },
+                { nome: "vaninna", normal: "54.00", geral: "80.00", cafe: "30.00" },
+                { nome: "Boa Vista", normal: "72.00", geral: "120.00", cafe: "35.00" },
+                { nome: "dune", normal: "54.00", geral: "80.00", cafe: "30.00" },
+                { nome: "bossa nova", normal: "36.00", geral: "60.00", cafe: "25.00" },
+                { nome: "camurupim", normal: "54.00", geral: "80.00", cafe: "30.00" },
+                { nome: "casa azul", normal: "36.00", geral: "60.00", cafe: "25.00" },
+                { nome: "kasa Brasil", normal: "60.00", geral: "90.00", cafe: "30.00" },
+                { nome: "guaiuba", normal: "72.00", geral: "100.00", cafe: "35.00" },
+                { nome: "vila tropicalle", normal: "60.00", geral: "90.00", cafe: "30.00" },
+                { nome: "rodolfo", normal: "0.00", geral: "0.00", cafe: "0.00" }
+            ];
+        }
 
         let casasValores = casasSalvasAntigas;
+        // Salva na chave principal unificada para garantir persistência
+        localStorage.setItem('casas_valores', JSON.stringify(casasValores));
 
         const mesesNomes = [
             "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", 

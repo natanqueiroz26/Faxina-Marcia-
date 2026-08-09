@@ -38,7 +38,7 @@
             </button>
         </div>
         <div class="p-4 border-t border-slate-100 text-center text-xs text-slate-400">
-            Controle de Faxinas v4.2
+            Controle de Faxinas v4.3
         </div>
     </div>
 
@@ -195,8 +195,10 @@
     <script>
         document.getElementById('dataFaxina').valueAsDate = new Date();
 
-        let faxinas = JSON.parse(localStorage.getItem('faxinas_v8')) || [];
-        let casasValores = JSON.parse(localStorage.getItem('casas_valores_v8')) || [
+        let faxinas = JSON.parse(localStorage.getItem('faxinas')) || JSON.parse(localStorage.getItem('faxinas_v8')) || [];
+        
+        // Recupera dados antigos salvos no navegador para não perder nada
+        let casasSalvasAntigas = JSON.parse(localStorage.getItem('casas_valores')) || JSON.parse(localStorage.getItem('casas_valores_v8')) || [
             { nome: "Queiroz", normal: "50.00", geral: "100.00", cafe: "30.00" },
             { nome: "vaninna", normal: "54.00", geral: "80.00", cafe: "30.00" },
             { nome: "Boa Vista", normal: "72.00", geral: "120.00", cafe: "35.00" },
@@ -209,6 +211,8 @@
             { nome: "vila tropicalle", normal: "60.00", geral: "90.00", cafe: "30.00" },
             { nome: "rodolfo", normal: "0.00", geral: "0.00", cafe: "0.00" }
         ];
+
+        let casasValores = casasSalvasAntigas;
 
         const mesesNomes = [
             "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", 
@@ -309,7 +313,7 @@
                 alert('Casa cadastrada com sucesso!');
             }
 
-            localStorage.setItem('casas_valores_v8', JSON.stringify(casasValores));
+            localStorage.setItem('casas_valores', JSON.stringify(casasValores));
             document.getElementById('formCadastrarCasa').reset();
             atualizarListaCasasCadastradas();
         });
@@ -345,7 +349,7 @@
         function removerCasa(index) {
             if (confirm('Deseja apagar esta casa da lista?')) {
                 casasValores.splice(index, 1);
-                localStorage.setItem('casas_valores_v8', JSON.stringify(casasValores));
+                localStorage.setItem('casas_valores', JSON.stringify(casasValores));
                 atualizarListaCasasCadastradas();
             }
         }
@@ -556,7 +560,7 @@
                         f.status = 'recebido';
                     }
                 });
-                localStorage.setItem('faxinas_v8', JSON.stringify(faxinas));
+                localStorage.setItem('faxinas', JSON.stringify(faxinas));
                 atualizarTela();
             }
         }
@@ -570,7 +574,7 @@
                         f.status = 'pendente';
                     }
                 });
-                localStorage.setItem('faxinas_v8', JSON.stringify(faxinas));
+                localStorage.setItem('faxinas', JSON.stringify(faxinas));
                 atualizarTela();
             }
         }
@@ -588,7 +592,7 @@
             };
 
             faxinas.unshift(novaFaxina);
-            localStorage.setItem('faxinas_v8', JSON.stringify(faxinas));
+            localStorage.setItem('faxinas', JSON.stringify(faxinas));
             
             formFaxina.reset();
             document.getElementById('enviarZapCheck').checked = true;
@@ -607,7 +611,7 @@
                 const valorLimpo = parseFloat(novoValorStr.replace(',', '.'));
                 if (!isNaN(valorLimpo)) {
                     faxinas[index].valor = valorLimpo.toFixed(2);
-                    localStorage.setItem('faxinas_v8', JSON.stringify(faxinas));
+                    localStorage.setItem('faxinas', JSON.stringify(faxinas));
                     atualizarTela();
                 } else {
                     alert('Valor inválido. Digite apenas números.');
@@ -617,13 +621,13 @@
 
         function darBaixa(index) {
             faxinas[index].status = 'recebido';
-            localStorage.setItem('faxinas_v8', JSON.stringify(faxinas));
+            localStorage.setItem('faxinas', JSON.stringify(faxinas));
             atualizarTela();
         }
 
         function voltarPendente(index) {
             faxinas[index].status = 'pendente';
-            localStorage.setItem('faxinas_v8', JSON.stringify(faxinas));
+            localStorage.setItem('faxinas', JSON.stringify(faxinas));
             atualizarTela();
         }
 
@@ -673,7 +677,7 @@
         function removerFaxina(index) {
             if (confirm('Deseja realmente apagar este registro?')) {
                 faxinas.splice(index, 1);
-                localStorage.setItem('faxinas_v8', JSON.stringify(faxinas));
+                localStorage.setItem('faxinas', JSON.stringify(faxinas));
                 atualizarTela();
             }
         }

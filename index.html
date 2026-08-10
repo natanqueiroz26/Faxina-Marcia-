@@ -37,25 +37,10 @@
         .badge-saida { background: var(--danger); }
         .btn-delete { background: var(--danger); width: auto; padding: 6px 12px; font-size: 0.8rem; margin-left: 10px; }
         .btn-delete:hover { background: #dc2626; }
-        
-        .btn-fab {
-            display: none;
-            width: 50px;
-            height: 50px;
-            background: var(--primary);
-            color: white;
-            border-radius: 50%;
-            text-align: center;
-            font-size: 28px;
-            line-height: 48px;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            margin: 0 auto 15px auto;
-            border: none;
-        }
-        .btn-fab:hover { background: var(--primary-dark); }
-        
-        .auth-bar { text-align: right; margin-bottom: 15px; font-size: 0.85rem; }
+        .admin-controls { display: none; margin-top: 10px; border-top: 2px dashed #e5e7eb; padding-top: 15px; }
+        .admin-controls.active { display: block; }
+        .status-bar { font-size: 0.8rem; text-align: center; color: var(--text-light); margin-bottom: 15px; }
+        .auth-bar { text-align: right; margin-bottom: 10px; font-size: 0.85rem; }
         .auth-bar a { color: var(--primary); cursor: pointer; text-decoration: underline; }
     </style>
 </head>
@@ -72,16 +57,10 @@
         <a id="authBtn" onclick="toggleAdmin()">Entrar como Administrador</a>
     </div>
 
-    <!-- Botão de Mais (+) visível apenas para o Admin -->
-    <button id="btnOpenForm" class="btn-fab" onclick="toggleForm()" title="Adicionar Lançamento">+</button>
-
-    <!-- Formulário Restrito a Admin (Oculto por padrão) -->
+    <!-- Formulário Restrito a Admin -->
     <div id="formCard" class="card" style="display: none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h3>Novo Lançamento</h3>
-            <span style="cursor:pointer; font-weight:bold; color:#6b7280;" onclick="toggleForm()">✕ Fechar</span>
-        </div>
-        <form id="lancamentoForm">
+        <h3>Novo Lançamento</h3>
+        <form id="lancamentoForm" style="margin-top: 15px;">
             <div class="form-group">
                 <label>Descrição</label>
                 <input type="text" id="descricao" required placeholder="Ex: Faxina Residencial">
@@ -101,7 +80,7 @@
         </form>
     </div>
 
-    <!-- Lista Visível para Todos em Tempo Real -->
+    <!-- Lista Visível para Todos -->
     <div class="card">
         <h3>Histórico em Tempo Real</h3>
         <ul id="listaLancamentos" class="list-group" style="margin-top: 15px;">
@@ -113,8 +92,9 @@
 <!-- SDK do Firebase -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addFirestoreData, addDoc, getDocs, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+    // Configuração do seu Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyBhakcaNxs7mQCseq1QS9Eaq_",
         authDomain: "marcia-faxina.firebaseapp.com",
@@ -128,14 +108,14 @@
     const db = getFirestore(app);
 
     let isAdmin = false;
-    const ADMIN_SENHA = "123";
+    const ADMIN_SENHA = "123"; // Senha padrão para gerenciar (você pode alterar depois)
 
     window.toggleAdmin = function() {
         if (!isAdmin) {
             let senha = prompt("Digite a senha de Administrador:");
             if (senha === ADMIN_SENHA) {
                 isAdmin = true;
-                document.getElementById('btnOpenForm').style.display = 'block';
+                document.getElementById('formCard').style.display = 'block';
                 document.getElementById('authText').innerText = 'Modo Administrador Ativo';
                 document.getElementById('authBtn').innerText = 'Sair do Modo Admin';
                 carregarDados();
@@ -144,7 +124,6 @@
             }
         } else {
             isAdmin = false;
-            document.getElementById('btnOpenForm').style.display = 'none';
             document.getElementById('formCard').style.display = 'none';
             document.getElementById('authText').innerText = 'Modo Visualização Pública';
             document.getElementById('authBtn').innerText = 'Entrar como Administrador';
@@ -152,11 +131,7 @@
         }
     }
 
-    window.toggleForm = function() {
-        const form = document.getElementById('formCard');
-        form.style.display = (form.style.display === 'none') ? 'block' : 'none';
-    }
-
+    // Migração automática de dados locais antigos para o Firebase (para não perder nada!)
     async function migrarDadosLocais() {
         try {
             let dadosAntigos = localStorage.getItem('lancamentos');
@@ -171,7 +146,8 @@
                             data: item.data || new Date().toISOString()
                         });
                     }
-                    localStorage.removeItem('lancamentos');
+                    localStorage.removeItem('lancamentos'); // Limpa após migrar com sucesso
+                    console.log("Dados antigos migrados para a nuvem com sucesso!");
                 }
             }
         } catch (e) {
@@ -179,6 +155,7 @@
         }
     }
 
+    // Enviar novo lançamento
     document.getElementById('lancamentoForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         if (!isAdmin) return alert("Apenas o administrador pode adicionar lançamentos!");
@@ -195,12 +172,12 @@
                 data: new Date().toISOString()
             });
             document.getElementById('lancamentoForm').reset();
-            document.getElementById('formCard').style.display = 'none';
         } catch (error) {
             alert("Erro ao salvar na nuvem: " + error.message);
         }
     });
 
+    // Deletar lançamento
     window.deletarLancamento = async function(id) {
         if (!isAdmin) return alert("Apenas o administrador pode apagar registros!");
         if (confirm("Tem certeza que deseja apagar este lançamento?")) {
@@ -212,8 +189,9 @@
         }
     }
 
-    async function carregarDados() {
-        await migrarDadosLocais();
+    // Escutar dados em tempo real
+    function carregarDados() {
+        migrarDadosLocais();
         const q = query(collection(db, "lancamentos"));
         
         onSnapshot(q, (snapshot) => {

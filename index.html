@@ -64,18 +64,18 @@
 <div class="container">
     <header>
         <h1>📊 Meus Lançamentos</h1>
-        <span id="syncStatus" class="badge badge-entrada">Nuvem Ativa</span>
+        <span id="syncStatus" class="badge badge-entrada">Conectado Nuvem</span>
     </header>
 
     <div class="auth-bar">
-        <span id="authText">Modo Visualização</span> | 
+        <span id="authText">Modo Visualização Pública</span> | 
         <a id="authBtn" onclick="toggleAdmin()">Entrar como Administrador</a>
     </div>
 
-    <!-- Botão de Mais (+) -->
+    <!-- Botão de Mais (+) flutuante visível apenas para o Admin -->
     <button id="btnOpenForm" class="btn-fab" onclick="toggleForm()" title="Adicionar Lançamento">+</button>
 
-    <!-- Formulário Oculto -->
+    <!-- Formulário Restrito a Admin (Oculto por padrão) -->
     <div id="formCard" class="card" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <h3>Novo Lançamento</h3>
@@ -97,11 +97,11 @@
                     <option value="saida">Saída (Despesa)</option>
                 </select>
             </div>
-            <button type="submit">Salvar Lançamento</button>
+            <button type="submit">Adicionar Lançamento</button>
         </form>
     </div>
 
-    <!-- Lista -->
+    <!-- Lista Visível para Todos em Tempo Real -->
     <div class="card">
         <h3>Histórico em Tempo Real</h3>
         <ul id="listaLancamentos" class="list-group" style="margin-top: 15px;">
@@ -136,8 +136,8 @@
             if (senha === ADMIN_SENHA) {
                 isAdmin = true;
                 document.getElementById('btnOpenForm').style.display = 'block';
-                document.getElementById('authText').innerText = 'Modo Admin Ativo';
-                document.getElementById('authBtn').innerText = 'Sair';
+                document.getElementById('authText').innerText = 'Modo Administrador Ativo';
+                document.getElementById('authBtn').innerText = 'Sair do Modo Admin';
                 carregarDados();
             } else if (senha !== null) {
                 alert("Senha incorreta!");
@@ -146,7 +146,7 @@
             isAdmin = false;
             document.getElementById('btnOpenForm').style.display = 'none';
             document.getElementById('formCard').style.display = 'none';
-            document.getElementById('authText').innerText = 'Modo Visualização';
+            document.getElementById('authText').innerText = 'Modo Visualização Pública';
             document.getElementById('authBtn').innerText = 'Entrar como Administrador';
             carregarDados();
         }
@@ -157,7 +157,7 @@
         form.style.display = (form.style.display === 'none') ? 'block' : 'none';
     }
 
-    // Migração automática de dados locais para o Firebase
+    // Migração automática de dados locais antigos para o Firebase
     async function migrarDadosLocais() {
         try {
             let dadosAntigos = localStorage.getItem('lancamentos');
@@ -180,9 +180,10 @@
         }
     }
 
+    // Enviar novo lançamento
     document.getElementById('lancamentoForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        if (!isAdmin) return;
+        if (!isAdmin) return alert("Apenas o administrador pode adicionar lançamentos!");
 
         const descricao = document.getElementById('descricao').value;
         const valor = parseFloat(document.getElementById('valor').value);
@@ -198,13 +199,14 @@
             document.getElementById('lancamentoForm').reset();
             document.getElementById('formCard').style.display = 'none';
         } catch (error) {
-            alert("Erro ao salvar: " + error.message);
+            alert("Erro ao salvar na nuvem: " + error.message);
         }
     });
 
+    // Deletar lançamento
     window.deletarLancamento = async function(id) {
-        if (!isAdmin) return;
-        if (confirm("Deseja apagar este registro?")) {
+        if (!isAdmin) return alert("Apenas o administrador pode apagar registros!");
+        if (confirm("Tem certeza que deseja apagar este lançamento?")) {
             try {
                 await deleteDoc(doc(db, "lancamentos", id));
             } catch (error) {
@@ -213,6 +215,7 @@
         }
     }
 
+    // Escutar dados em tempo real e garantir migração
     async function carregarDados() {
         await migrarDadosLocais();
         const q = query(collection(db, "lancamentos"));
@@ -222,7 +225,7 @@
             lista.innerHTML = "";
 
             if (snapshot.empty) {
-                lista.innerHTML = `<li class="list-item"><div class="item-info"><span class="item-details">Nenhum lançamento cadastrado.</span></div></li>`;
+                lista.innerHTML = `<li class="list-item"><div class="item-info"><span class="item-details">Nenhum lançamento cadastrado ainda.</span></div></li>`;
                 return;
             }
 
@@ -247,6 +250,10 @@
                 `;
                 lista.appendChild(li);
             });
+        }, (error) => {
+            console.error("Erro ao escutar dados:", error);
+            document.getElementById('syncStatus').innerText = "Erro de Sincronização";
+            document.getElementById('syncStatus').className = "badge badge-saida";
         });
     }
 

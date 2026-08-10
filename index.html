@@ -128,7 +128,6 @@
                     </h2>
                     <span id="contadorPendentes" class="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded-full font-medium">0 registros</span>
                 </div>
-                <div id="listaPendentesMeses" class="space-y-3 mb-4"></div>
                 
                 <div id="listaPendentes" class="space-y-3 max-h-96 overflow-y-auto pr-1">
                     <p class="text-center text-slate-400 text-sm py-6">Carregando dados da nuvem...</p>
@@ -208,14 +207,11 @@
         </div>
     </main>
 
-    <!-- Trocamos para type="module" para o Firebase funcionar -->
     <script type="module">
-        // 1. IMPORTAÇÕES DO FIREBASE (Nuvem em Tempo Real)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, updateDoc, doc, onSnapshot } 
         from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // 2. CONFIGURAÇÃO DO SEU FIREBASE (Substitua as informações abaixo pelas do seu projeto!)
         const firebaseConfig = {
             apiKey: "COLE_AQUI_A_SUA_API_KEY",
             authDomain: "COLE_AQUI_O_SEU_AUTH_DOMAIN",
@@ -225,38 +221,27 @@
             appId: "COLE_AQUI_O_SEU_APP_ID"
         };
 
-        // 3. INICIANDO O BANCO DE DADOS
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Nossas variáveis agora iniciam vazias e são preenchidas pela nuvem
         let faxinas = [];
         let casasValores = [];
 
-        // 4. MIGRAR DADOS ANTIGOS PARA A NUVEM AUTOMATICAMENTE
         async function migrarParaNuvem() {
             let antigasFaxinas = JSON.parse(localStorage.getItem('faxinas'));
             let antigasCasas = JSON.parse(localStorage.getItem('casas_valores'));
 
             if (antigasFaxinas && antigasFaxinas.length > 0) {
-                console.log("Migrando faxinas para a nuvem...");
-                for (let f of antigasFaxinas) {
-                    await addDoc(collection(db, "faxinas"), f);
-                }
-                localStorage.removeItem('faxinas'); // Apaga do aparelho local após salvar na nuvem
+                for (let f of antigasFaxinas) { await addDoc(collection(db, "faxinas"), f); }
+                localStorage.removeItem('faxinas');
             }
-
             if (antigasCasas && antigasCasas.length > 0) {
-                console.log("Migrando casas para a nuvem...");
-                for (let c of antigasCasas) {
-                    await addDoc(collection(db, "casas"), c);
-                }
+                for (let c of antigasCasas) { await addDoc(collection(db, "casas"), c); }
                 localStorage.removeItem('casas_valores');
             }
         }
-        migrarParaNuvem(); // Executa a verificação na hora que abre o site
+        migrarParaNuvem();
 
-        // 5. ESCUTANDO MUDANÇAS EM TEMPO REAL (O SEGREDO DA SINCRONIZAÇÃO)
         onSnapshot(collection(db, "faxinas"), (snapshot) => {
             faxinas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             window.atualizarTela();
@@ -269,14 +254,9 @@
         });
 
         document.getElementById('dataFaxina').valueAsDate = new Date();
-        const mesesNomes = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-
         const formFaxina = document.getElementById('formFaxina');
         const formCadastrarCasa = document.getElementById('formCadastrarCasa');
-        const listaPendentes = document.getElementById('listaPendentes');
-        const listaRecebidosMeses = document.getElementById('listaRecebidosMeses');
-        
-        // --- FUNÇÕES DE NAVEGAÇÃO E TELA EXPOSTAS PARA O HTML (window) ---
+
         window.toggleMenu = function() {
             const drawer = document.getElementById('drawerMenu');
             const overlay = document.getElementById('drawerOverlay');
@@ -343,12 +323,6 @@
             }
         };
 
-        window.toggleMesAccordion = function(id) {
-            document.getElementById(`conteudo-${id}`).classList.toggle('hidden');
-            document.getElementById(`icone-${id}`).classList.toggle('rotate-180');
-        };
-
-        // --- SALVAR CASAS (MUDANÇA AQUI: USA A NUVEM) ---
         formCadastrarCasa.addEventListener('submit', async (e) => {
             e.preventDefault();
             const docId = document.getElementById('editIndexCasa').value;
@@ -420,7 +394,6 @@
             });
         };
 
-        // --- SALVAR FAXINAS (MUDANÇA AQUI: USA A NUVEM) ---
         formFaxina.addEventListener('submit', async (e) => {
             e.preventDefault();
             const docId = document.getElementById('editIndexFaxina').value;
@@ -435,7 +408,6 @@
             };
 
             if (docId !== '') {
-                // Ao editar, mantemos o status que já estava lá
                 const oldFaxina = faxinas.find(f => f.id === docId);
                 objFaxina.status = oldFaxina ? oldFaxina.status : 'pendente';
                 await updateDoc(doc(db, "faxinas", docId), objFaxina);
@@ -475,26 +447,6 @@
             }
         };
 
-        window.darBaixaMes = async function(chaveMes) {
-            const [ano, mes] = chaveMes.split('-');
-            if (confirm(`Deseja dar baixa em todos os serviços pendentes de ${mesesNomes[parseInt(mes) - 1]} de ${ano}?`)) {
-                const pendentesDoMes = faxinas.filter(f => f.status === 'pendente' && f.data.startsWith(chaveMes));
-                for(let f of pendentesDoMes) {
-                    await updateDoc(doc(db, "faxinas", f.id), { status: 'recebido' });
-                }
-            }
-        };
-
-        window.restaurarMes = async function(chaveMes) {
-            const [ano, mes] = chaveMes.split('-');
-            if (confirm(`Deseja restaurar todos os serviços de ${mesesNomes[parseInt(mes) - 1]} de ${ano} de volta para Pendentes?`)) {
-                const recebidosDoMes = faxinas.filter(f => f.status === 'recebido' && f.data.startsWith(chaveMes));
-                for(let f of recebidosDoMes) {
-                    await updateDoc(doc(db, "faxinas", f.id), { status: 'pendente' });
-                }
-            }
-        };
-
         // --- FUNÇÕES DE WHATSAPP ---
         window.enviarIndividual = function(id) {
             const f = faxinas.find(fax => fax.id === id);
@@ -502,30 +454,149 @@
         };
 
         window.enviarIndividualTexto = function(f) {
-            const dataFormatada = new Date(f.data + 'T00:00:00').toLocaleDateString('pt-BR');
-            const valorFormatado = (parseFloat(f.valor) || 0).Este é um aplicativo de página única (SPA) muito bem estruturado e funcional para o gerenciamento de serviços de limpeza e faxina! Ele utiliza um conjunto de tecnologias modernas e leves (Tailwind CSS via CDN, Vanilla JavaScript e LocalStorage) para criar uma ferramenta prática e responsiva.
+            const dataObj = new Date(f.data + 'T00:00:00');
+            const dataFormatada = dataObj.toLocaleDateString('pt-BR');
+            const valorFormatado = (parseFloat(f.valor) || 0).toFixed(2).replace('.', ',');
+            
+            const texto = `Olá! Segue o resumo do serviço:\n\n*Local:* ${f.casa}\n*Serviço:* ${f.tipo}\n*Data:* ${dataFormatada}\n*Valor:* R$ ${valorFormatado}\n\nObrigado!`;
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`, '_blank');
+        };
 
-Aqui está uma análise do seu código e algumas observações sobre a estrutura:
+        window.enviarWhatsAppGeral = function() {
+            const pendentes = faxinas.filter(f => f.status === 'pendente');
+            if (pendentes.length === 0) {
+                alert("Você não possui faxinas pendentes para enviar.");
+                return;
+            }
 
-### **Visão Geral das Funcionalidades**
-Você construiu um sistema completo de gestão de pequenos negócios, que inclui:
-*   **Gestão de Estado e Persistência:** Uso eficiente do `localStorage` para manter os dados salvos no navegador do usuário, com dados iniciais (mock) caso o armazenamento esteja vazio.
-*   **Fluxo de Caixa (Pendentes vs. Recebidos):** Lógica clara para separar o que ainda precisa ser pago do histórico de recebimentos, agrupados por mês.
-*   **Gestão de Clientes/Casas:** Um sistema inteligente de cadastro de preços padrão por casa (Normal, Geral e Café da Manhã) que preenche automaticamente o valor na hora de criar uma nova faxina.
-*   **Integração com WhatsApp:** Um toque excelente de usabilidade, permitindo enviar resumos de cobrança diretamente para os clientes.
-*   **Backup e Restauração:** Uma funcionalidade essencial de segurança de dados (exportar e importar JSON), que muitas vezes é esquecida em apps baseados em LocalStorage.
+            let texto = "*Resumo de Serviços Pendentes*\n\n";
+            let total = 0;
 
-### **Pontos Fortes do Código**
-*   **Interface Limpa e Responsiva:** O uso do Tailwind CSS deixou o visual muito profissional, moderno e amigável para dispositivos móveis (o que é ideal para quem está na rua trabalhando).
-*   **Feedback Visual:** O uso de ícones do FontAwesome e cores semânticas (Verde para sucesso/recebido, Amarelo/Laranja para pendentes) ajuda muito na leitura rápida dos dados.
-*   **Interatividade sem dependências pesadas:** Você conseguiu criar modais, menus laterais deslizantes (drawers) e listas dinâmicas usando apenas JavaScript puro, mantendo o projeto super leve.
+            pendentes.forEach(f => {
+                const dataFormatada = new Date(f.data + 'T00:00:00').toLocaleDateString('pt-BR');
+                const valor = parseFloat(f.valor) || 0;
+                total += valor;
+                texto += `- ${f.casa} (${f.tipo})\n  Data: ${dataFormatada} | Valor: R$ ${valor.toFixed(2).replace('.', ',')}\n\n`;
+            });
 
-### **Sugestões de Melhoria (Escalabilidade e Manutenção)**
-Caso você queira expandir este projeto no futuro, considere os seguintes pontos:
-*   **Separação de Responsabilidades:** Atualmente, a lógica de manipulação de dados (atualizar arrays) e a renderização do HTML (criar divs e injetar no DOM) estão na mesma função (ex: `atualizarTela`). Em aplicações maiores, separar o banco de dados (model) da interface (view) facilita a manutenção.
-*   **Validação de Entradas:** Adicionar proteções para impedir que casas com nomes idênticos sejam cadastradas acidentalmente, ou tratar letras maiúsculas/minúsculas de forma unificada para evitar duplicatas (ex: "vannina" vs "vaninna").
-*   **Aviso de Sobrescrita:** Na função de importação de backup, o aviso já existe, mas você poderia validar a estrutura do JSON importado de forma mais profunda antes de substituir os dados do `localStorage`, para evitar que um JSON corrompido quebre o app.
+            texto += `*Total a receber: R$ ${total.toFixed(2).replace('.', ',')}*`;
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`, '_blank');
+        };
 
----
+        // --- ATUALIZAÇÃO DA TELA ---
+        window.atualizarTela = function() {
+            const pendentes = faxinas.filter(f => f.status === 'pendente').sort((a,b) => new Date(b.data) - new Date(a.data));
+            const recebidos = faxinas.filter(f => f.status === 'recebido').sort((a,b) => new Date(b.data) - new Date(a.data));
 
-Você apenas compartilhou o código, então me diga: **Como posso ajudar você com esse projeto hoje? Você gostaria de adicionar alguma funcionalidade nova (como gráficos de faturamento anual), resolver algum bug específico ou otimizar o design?**
+            // Totais Pendentes
+            const totalPendente = pendentes.reduce((acc, curr) => acc + (parseFloat(curr.valor)||0), 0);
+            document.getElementById('totalPendente').textContent = `R$ ${totalPendente.toFixed(2).replace('.', ',')}`;
+            document.getElementById('qtdPendente').textContent = pendentes.length;
+            document.getElementById('contadorPendentes').textContent = `${pendentes.length} registros`;
+
+            // Totais Recebidos
+            const totalRecebido = recebidos.reduce((acc, curr) => acc + (parseFloat(curr.valor)||0), 0);
+            document.getElementById('totalRecebido').textContent = `R$ ${totalRecebido.toFixed(2).replace('.', ',')}`;
+            document.getElementById('qtdRecebido').textContent = recebidos.length;
+            document.getElementById('contadorRecebidos').textContent = `${recebidos.length} registros`;
+
+            // Renderizar Listas
+            renderizarLista(pendentes, 'listaPendentes', true);
+            renderizarLista(recebidos, 'listaRecebidosMeses', false);
+        };
+
+        function renderizarLista(lista, containerId, isPendente) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            if (lista.length === 0) {
+                container.innerHTML = `<p class="text-center text-slate-400 text-sm py-6">Nenhum registro encontrado.</p>`;
+                return;
+            }
+
+            lista.forEach(f => {
+                const dataObj = new Date(f.data + 'T00:00:00');
+                const dataFormatada = dataObj.toLocaleDateString('pt-BR');
+                const valorFormatado = (parseFloat(f.valor) || 0).toFixed(2).replace('.', ',');
+                
+                const div = document.createElement('div');
+                div.className = `p-3 rounded-xl border ${isPendente ? 'bg-white border-amber-100' : 'bg-slate-50 border-emerald-100'}`;
+                
+                let botoes = '';
+                if (isPendente) {
+                    botoes = `
+                        <button onclick="darBaixa('${f.id}')" title="Marcar como Pago" class="text-emerald-500 hover:text-emerald-600 p-2"><i class="fa-solid fa-check text-lg"></i></button>
+                        <button onclick="enviarIndividual('${f.id}')" title="Enviar WhatsApp" class="text-blue-500 hover:text-blue-600 p-2"><i class="fa-brands fa-whatsapp text-lg"></i></button>
+                        <button onclick="abrirEditarFaxina('${f.id}')" title="Editar" class="text-slate-400 hover:text-slate-600 p-2"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="removerFaxina('${f.id}')" title="Excluir" class="text-slate-400 hover:text-red-500 p-2"><i class="fa-solid fa-trash-can"></i></button>
+                    `;
+                } else {
+                    botoes = `
+                        <button onclick="voltarPendente('${f.id}')" title="Desfazer Recebimento" class="text-amber-500 hover:text-amber-600 p-2 text-sm flex items-center space-x-1"><i class="fa-solid fa-rotate-left"></i> <span>Desfazer</span></button>
+                        <button onclick="removerFaxina('${f.id}')" title="Excluir" class="text-slate-400 hover:text-red-500 p-2 ml-2"><i class="fa-solid fa-trash-can"></i></button>
+                    `;
+                }
+
+                div.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <p class="font-bold text-slate-700">${f.casa}</p>
+                            <p class="text-xs text-slate-500">${f.tipo} • <i class="fa-regular fa-calendar ml-1"></i> ${dataFormatada}</p>
+                        </div>
+                        <p class="font-bold ${isPendente ? 'text-amber-600' : 'text-emerald-600'}">R$ ${valorFormatado}</p>
+                    </div>
+                    <div class="flex justify-end items-center border-t border-slate-100 pt-2 mt-2 space-x-1">
+                        ${botoes}
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // --- BACKUP E RESTAURAÇÃO (Opcional, gera arquivo JSON) ---
+        window.exportarBackup = function() {
+            const data = { faxinas, casasValores };
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `backup_faxinas_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            toggleMenu();
+        };
+
+        window.importarBackup = async function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (confirm("Isto não apaga os dados da nuvem, mas adiciona as informações do arquivo. Deseja continuar?")) {
+                        if (data.faxinas) {
+                            for(let f of data.faxinas) {
+                                delete f.id; // Remove ID antigo para criar novo na nuvem
+                                await addDoc(collection(db, "faxinas"), f);
+                            }
+                        }
+                        if (data.casasValores) {
+                            for(let c of data.casasValores) {
+                                delete c.id;
+                                await addDoc(collection(db, "casas"), c);
+                            }
+                        }
+                        alert("Backup importado com sucesso para a nuvem!");
+                    }
+                } catch (error) {
+                    alert("Erro ao ler o arquivo de backup.");
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+            toggleMenu();
+        };
+    </script>
+</body>
+</html>

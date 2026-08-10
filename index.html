@@ -72,7 +72,7 @@
         <a id="authBtn" onclick="toggleAdmin()">Entrar como Administrador</a>
     </div>
 
-    <!-- Botão de Mais (+) flutuante visível apenas para o Admin -->
+    <!-- Botão de Mais (+) visível apenas para o Admin -->
     <button id="btnOpenForm" class="btn-fab" onclick="toggleForm()" title="Adicionar Lançamento">+</button>
 
     <!-- Formulário Restrito a Admin (Oculto por padrão) -->
@@ -157,7 +157,6 @@
         form.style.display = (form.style.display === 'none') ? 'block' : 'none';
     }
 
-    // Migração automática de dados locais antigos para o Firebase
     async function migrarDadosLocais() {
         try {
             let dadosAntigos = localStorage.getItem('lancamentos');
@@ -180,7 +179,6 @@
         }
     }
 
-    // Enviar novo lançamento
     document.getElementById('lancamentoForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         if (!isAdmin) return alert("Apenas o administrador pode adicionar lançamentos!");
@@ -203,7 +201,6 @@
         }
     });
 
-    // Deletar lançamento
     window.deletarLancamento = async function(id) {
         if (!isAdmin) return alert("Apenas o administrador pode apagar registros!");
         if (confirm("Tem certeza que deseja apagar este lançamento?")) {
@@ -215,7 +212,6 @@
         }
     }
 
-    // Escutar dados em tempo real e garantir migração
     async function carregarDados() {
         await migrarDadosLocais();
         const q = query(collection(db, "lancamentos"));

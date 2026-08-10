@@ -38,7 +38,6 @@
         .btn-delete { background: var(--danger); width: auto; padding: 6px 12px; font-size: 0.8rem; margin-left: 10px; }
         .btn-delete:hover { background: #dc2626; }
         
-        /* Botão de Adicionar Circular (+) flutuante ou no topo */
         .btn-fab {
             display: none;
             width: 50px;
@@ -73,10 +72,10 @@
         <a id="authBtn" onclick="toggleAdmin()">Entrar como Administrador</a>
     </div>
 
-    <!-- Botão de Mais (+) visível apenas para Admin -->
+    <!-- Botão de Mais (+) -->
     <button id="btnOpenForm" class="btn-fab" onclick="toggleForm()" title="Adicionar Lançamento">+</button>
 
-    <!-- Formulário Oculto que abre ao clicar no + -->
+    <!-- Formulário Oculto -->
     <div id="formCard" class="card" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <h3>Novo Lançamento</h3>
@@ -129,7 +128,7 @@
     const db = getFirestore(app);
 
     let isAdmin = false;
-    const ADMIN_SENHA = "123"; // Senha padrão para gerenciar
+    const ADMIN_SENHA = "123";
 
     window.toggleAdmin = function() {
         if (!isAdmin) {
@@ -155,10 +154,29 @@
 
     window.toggleForm = function() {
         const form = document.getElementById('formCard');
-        if (form.style.display === 'none') {
-            form.style.display = 'block';
-        } else {
-            form.style.display = 'none';
+        form.style.display = (form.style.display === 'none') ? 'block' : 'none';
+    }
+
+    // Migração automática de dados locais para o Firebase
+    async function migrarDadosLocais() {
+        try {
+            let dadosAntigos = localStorage.getItem('lancamentos');
+            if (dadosAntigos) {
+                let listaAntiga = JSON.parse(dadosAntigos);
+                if (listaAntiga.length > 0) {
+                    for (let item of listaAntiga) {
+                        await addDoc(collection(db, "lancamentos"), {
+                            descricao: item.descricao,
+                            valor: Number(item.valor),
+                            tipo: item.tipo,
+                            data: item.data || new Date().toISOString()
+                        });
+                    }
+                    localStorage.removeItem('lancamentos');
+                }
+            }
+        } catch (e) {
+            console.error("Erro ao migrar dados locais:", e);
         }
     }
 
@@ -178,7 +196,7 @@
                 data: new Date().toISOString()
             });
             document.getElementById('lancamentoForm').reset();
-            document.getElementById('formCard').style.display = 'none'; // Fecha o form após salvar
+            document.getElementById('formCard').style.display = 'none';
         } catch (error) {
             alert("Erro ao salvar: " + error.message);
         }
@@ -195,7 +213,8 @@
         }
     }
 
-    function carregarDados() {
+    async function carregarDados() {
+        await migrarDadosLocais();
         const q = query(collection(db, "lancamentos"));
         
         onSnapshot(q, (snapshot) => {
